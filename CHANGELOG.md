@@ -1,0 +1,33 @@
+
+# Change Log
+All notable changes to this project will be documented in this file.
+ 
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
+ 
+## [1.0.3] - 2023-05-15
+### Added
+- Options: delta-info and digest-info to check and prints information from file header
+- Streams: allows use STDIN and STDOUT for delta data
+- Apply-delta: option to apply delta to destination device
+- Make-delta: option to create delta from source device and digest
+- Delta files: stores only differential changes between source and target device
+- Delta files support
+
+ 
+## [1.0.1] - 2023-04-19
+### Added
+- Benchmark algos: added option to benchmark all supported hash algorithms
+- xxHash library: optional support for fast hashing algos: XXH32, XXH64, XXH3LOW, XXH3, XXH128
+- xxHash support added
+
+
+## [1.0.0] - 2023-03-11
+### Added
+- Mmap: alternative read/write method
+- Digest file: which stores checksums of target device
+- Libgcrypt support (1.90): provides multiple hashing algos for digest file
+- Block size: adjustable block-size option
+- Buffer size: adjustable buffer-size option
+- Blocksync operation mode: which compares and syncs the source and target device
+- Initial version release
