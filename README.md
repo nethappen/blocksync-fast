@@ -4,7 +4,7 @@ Blocksync-fast is a program written in C that clones and synchronizes any block 
 
 The digest file can be used to store checksums of blocks from a previous sync to avoid read operations from the target disk. This optimization is especially desirable when synchronizing fast NVM drives with slower HDD drives or when transferring data over the network. The program can also creates delta file that stores only differing blocks which can be applied to the destination.
 
-Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms, both cryptographic and non-cryptographic. Optionally, it can also use hashing algorithms from the xxHash family, which offers the very high speed of processed data on processors with SSE2, AVX2 instructions. [see list of hashing algos](## Hashing algos)
+Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms, both cryptographic and non-cryptographic. Optionally, it can also use hashing algorithms from the xxHash family, which offers the very high speed of processed data on processors with SSE2, AVX2 instructions. [see list of hashing algos](#hashing-algos)
 
 ## Requirements
 
@@ -249,20 +249,20 @@ $ blocksync-fast -d vol-2023-05-06-00.img --apply-delta -D vol-2023-05-07-00.del
 
 Blocksync-fast is a tool for fast synchronization of block devices, designed to improve block-based backups. To use it as an automatic backup tool, it is recommended to include it in a BASH script, which will allow you to set up a solution adjusted to your individual needs, using various features and tools available in Linux. It should be taken into account the possibility of synchronization interruption due to network disconnection, device detachment, or other errors that may occur. In case of synchronization failure, the program will return an error code greater than 0, which should be handled in the BASH shell and appropriate actions, such as generating reports or retrying the synchronization, should be taken. It is also important to note that when synchronization with the Digest file is interrupted, there may be an inconsistencies between the state of the Digest file and the target storage device. Therefore, after each such interruption, it is recommended to rebuild the Digest file from the target backup or operate on a copy of the Digest file until full synchronization is achieved.
 
-An example backup script with GFS rotation scheme can be found in scripts directory.
+An example backup script with GFS rotation scheme can be found in [scripts directory](https://www.github.com/nethappen/blocksync-fast/tree/main/scripts).
 
 ## FAQ
 
 <details>
 <summary>How does this block devices synchronization program work ?</summary>
-
+<br>
 The program works by comparing the data of the source device (src) with the target device (dst) at the level of data blocks and copying only changed blocks, which allows for fast and file system independent synchronization. Additionally, the program can create and use Digest files that store checksums of blocks to speed up synchronization process by eliminating data reading from the target device.
 
 </details>
 
 <details>
 <summary>What are the main uses of this program ?</summary>
-
+<br>
 The program can be used for simple cloning of entire disks or partitions as well as their re-synchronization. The main purpose of the program is block-based backup.
 
 </details>
@@ -276,51 +276,51 @@ You can synchronize data between all devices containing data blocks, both block 
 
 <details>
 <summary>What is a Digest file ?</summary>
-
+<br>
 The Digest file is generated during block devices synchronization. It stores checksums of blocks copied to the target device, which will be used during the next synchronization to compare the data with the blocks of the source device. This eliminates the need to read blocks from the target device, access to which may be slower. Digest file also store synchronization parameters such as block size or the algorithm used to calculate checksums.
 
 </details>
 
 <details>
 <summary>What is a Delta file ?</summary>
-
+<br>
 The Delta file is created as a result of synchronization between the source device and the Digest file, which reflects the state of the target device's blocks. The Delta file contains data only of those blocks that are needed to update the target device. Thanks to this process, it is possible to synchronize and transfer data to a remote server and store incremental copies of data.
 
 </details>
 
 <details>
 <summary>How can I monitor the progress of block copying ?</summary>
-
+<br>
 The "--progress" should be added as an argument of the program. Also "--progres-detail" can be used to monitor detailed activity.
 
 </details>
 
 <details>
 <summary>What data block size is used during synchronization ?</summary>
-
+<br>
 The default block size is 4KB, which is the preferred block size of most file systems. You can adjust the block size by the "--block-size" parameter without any restrictions, but there is no advantage in setting this size below the underlying filesystem block size.
 
 </details>
 
 <details>
 <summary>Can I synchronize block devices via the network ?</summary>
-
+<br>
 Yes, however the application itself does not have a built-in client-server option running on its own protocol. You must ensure that the remote disk is mounted via SAN or NAS yourself. You can also use and copy Delta files via pipelining and redirect stdout to stdin on a remote server via SSH.
 
 </details>
 
 <details>
 <summary>How to restore data from a backup ?</summary>
-
+<br>
 To restore data from a backup, you must reverse the process and specify the source device as the backup file and the target device to which the data is to be restored as parameters. If there are also Delta files in the repository, restore the base copy of the disk image first, then sequentially apply the Delta files in the correct order, starting with the oldest.
 
-If you need to extract only some of the files from the backup, you can directly mount the backup disk image to access the file system: "mount -o loop backup.img /mnt/restore". W przypadku backupu inkrementacyjnego, pliki Delta trzeba zastosować na bazową kopię dysku.
+If you need to extract only some of the files from the backup, you can directly mount the backup disk image to access the file system: "mount -o loop backup.img /mnt/restore". In the case of an incremental backup, Delta files must be applied to the base copy of the disk.
 
 </details>
 
 <details>
 <summary>What are the differences between this tool and other block syncing tools or backup programs ?</summary>
-
+<br>
 Blocksync-fast was created for fast and efficient synchronization of block devices. It is written in the C language and it uses low-level operations and directly calls system functions allowing for direct communication with block devices, which translates into effective work and fast data processing. The program minimizes resource consumption through effective memory management, and thanks to the use of a data buffer, it achieves high performance when working on small data blocks.
 
 The program allows you to generate Digest files that significantly speed up the synchronization process by tracking changes and differences between data copies. In addition, Delta files, which contain only differences between data versions, enable quick copying, updating and remote synchronization, as well as data storage in the form of incremental backup.
