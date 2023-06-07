@@ -331,4 +331,4 @@ Blocksync-fast is simple to use and provides you the freedom to build your own s
 
 ## Licensing
 
-Blocksync-fast is licensed under the Apache License, Version 2.0. See LICENSE for the full license text.
+Blocksync-fast is licensed under the Apache License, Version 2.0. See [LICENSE](https://www.github.com/nethappen/blocksync-fast/tree/main/LICENSE) for the full license text.
