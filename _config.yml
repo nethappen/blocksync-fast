@@ -2,7 +2,7 @@ remote_theme: pages-themes/cayman@v0.2.0
 plugins:
 - jekyll-remote-theme
 
-title: blocksync-fast
-description: synchronize block devices with digest
+title: Cloning and fast synchronization of block devices using a digest file
+description: Cloning and fast synchronization of block devices using a digest file
 
 show_downloads: true
