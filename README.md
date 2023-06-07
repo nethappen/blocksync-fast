@@ -254,7 +254,7 @@ An example backup script with GFS rotation scheme can be found in [scripts direc
 ## FAQ
 
 <details>
-<summary>[How does this block devices synchronization program work ?](#)</summary>
+<summary>How does this block devices synchronization program work ?</summary>
 <br>
 The program works by comparing the data of the source device (src) with the target device (dst) at the level of data blocks and copying only changed blocks, which allows for fast and file system independent synchronization. Additionally, the program can create and use Digest files that store checksums of blocks to speed up synchronization process by eliminating data reading from the target device.
 
