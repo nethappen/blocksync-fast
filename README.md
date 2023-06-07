@@ -1,7 +1,5 @@
 # Blocksync-fast
 
-## Cloning and fast synchronization of block devices using a digest file
-
 Blocksync-fast is a program written in C that clones and synchronizes any block devices (entire disks, partitions) or files (disk images) using fast and efficient methods. It uses buffered reads and writes to combine adjacent blocks together reducing the number of I/O operations. At synchronization process program overwrites only changed blocks which reduces data transfer and maintains blocks deduplication in Copy-on-write file systems.
 
 The digest file can be used to store checksums of blocks from a previous sync to avoid read operations from the target disk. This optimization is especially desirable when synchronizing fast NVM drives with slower HDD drives or when transferring data over the network. The program can also creates delta file that stores only differing blocks which can be applied to the destination.
@@ -11,8 +9,8 @@ Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms,
 ## Requirements
 
 - Linux with standard libraries and build tools
-- Required library: Libgcrypt >= 1.9.0
-- Optional library: xxxHash >= 0.8.0
+- Required library: [Libgcrypt](https://github.com/gpg/libgcrypt) >= 1.9.0
+- Optional library: [xxHash](https://github.com/Cyan4973/xxHash) >= 0.8.0
 
 ## Installation
 
@@ -161,7 +159,7 @@ Block-level backups are used in environments where there is a need to backup ent
 
 #### BTRFS as backup repository
 
-BTRFS is a Copy-on-Write file system with snapshots and transparent data compression. It is a very well suited for storing deduplicated copies of disk images from many backup cycles, minimizing the occupied disk space.
+[BTRFS](https://github.com/btrfs/linux) is a Copy-on-Write file system with snapshots and transparent data compression. It is a very well suited for storing deduplicated copies of disk images from many backup cycles, minimizing the occupied disk space.
 
 #### BTRFS compression mount option
 
