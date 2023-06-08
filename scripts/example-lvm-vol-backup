@@ -66,13 +66,13 @@ makeBackup()
 {
     sync;
     [ -d "$DESTDIR/$LV" ] || (mkdir "$DESTDIR/$LV" > /dev/null 2>&1)
-    LOG=$(blocksync --src=/dev/$VG/$LV-$SNAP_NAME --dst=$DESTDIR/$LV/current --digest=$DIGEST_PATH)
+    LOG=$(blocksync-fast --src=/dev/$VG/$LV-$SNAP_NAME --dst=$DESTDIR/$LV/current --digest=$DIGEST_PATH)
 
     if [ "$?" != "0" ]; then
 	logger "$0 - creating backup failed";
     else
         echo $(date) > "$DESTDIR/$LV/current.date"
-	logger "$0 - blocksync $VG/$LV : $LOG";
+	logger "$0 - blocksync-fast $VG/$LV : $LOG";
     fi;
 }
 
