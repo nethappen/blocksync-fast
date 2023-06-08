@@ -287,9 +287,6 @@ void init_digest_file()
             {
                 _algo = algos[i];
 
-                if (digest_header.hash_type == _algo.value)
-                    break;
-
                 if (_algo.value == 0)
                 {
                     fprintf(stderr, "%s: digest file has unsupported hash algorithm\n", process_name);
@@ -304,6 +301,9 @@ void init_digest_file()
                     _algo = param.algo;
                     break;
                 }
+
+                if (digest_header.hash_type == _algo.value)
+                    break;
             }
 
             if (param.hash_algo == NULL)
