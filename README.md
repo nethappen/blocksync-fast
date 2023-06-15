@@ -1,4 +1,4 @@
-# Blocksync-fast
+![Blocksync-fast](https://raw.githubusercontent.com/nethappen/blocksync-fast/main/assets/images/blocksync-fast.png)
 
 Blocksync-fast is a program written in C that clones and synchronizes any block devices (entire disks, partitions) or files (disk images) using fast and efficient methods. It uses buffered reads and writes to combine adjacent blocks together reducing the number of I/O operations. At synchronization process program overwrites only changed blocks which reduces data transfer and maintains blocks deduplication in Copy-on-write file systems.
 
