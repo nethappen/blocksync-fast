@@ -52,34 +52,34 @@ Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms,
 
 ## Options
 
-|                Argument | Description                                                                                                 |
-| ----------------------: | ----------------------------------------------------------------------------------------------------------- |
-|          -s, --src=PATH | Source block device or disk image                                                                           |
-|          -d, --dst=PATH | Destination block device or disk image                                                                      |
-|           --make-digest | Creates only digest file                                                                                    |
-|       -f, --digest=PATH | Digest file stores checksums of the blocks from sync                                                        |
-|            --make-delta | Creates a delta file from src                                                                               |
-|           --apply-delta | Applies a delta file to dst                                                                                 |
-|        -D, --delta=PATH | Delta file path. If none, data write to stdout or read from stdin                                           |
-| -b, --block-size=N[KMG] | Block size in N bytes for writing and checksum calculations (default:4K)                                    |
-|         -a, --algo=ALGO | Cryptographic hash algorithm which is used to compute checksum to compare blocks (default:CRC32 or XXH3LOW) |
-|        -l, --list-algos | It prints all supported hash algorithms                                                                     |
-|       --benchmark-algos | Benchmark all supported hash algorithms                                                                     |
-|           --digest-info | Checks digest file, prints info and exit                                                                    |
-|            --delta-info | Checks delta file, prints info and exit                                                                     |
-|    --buffer-size=N[KMG] | Size of the buffer in N bytes for processing data per device (default:2M)                                   |
-|              --progress | Show current progress while syncing                                                                         |
-|       --progress-detail | Show more detailed progress which generates a lot of writes on the console                                  |
-|                  --mmap | Use a system mmap instead of direct read and write method                                                   |
-|            --no-compare | Copy all data from src to dst without comparing differences                                                 |
-|           --sync-writes | Immediately flushes and writes data to the disk specified at --buffer-size                                  |
-|            --dont-write | Perform dry run with no updates to target and digest file                                                   |
-|     --dont-write-target | Perform run with no updates only to target device                                                           |
-|     --dont-write-digest | Perform run with no updates only to digest file                                                             |
-|                 --force | Allows to overwrite files and override parameters which was generated before                                |
-|                --silent | Doesn't print any messages                                                                                  |
-|              -h, --help | Show this help message                                                                                      |
-|           -V, --version | Show version                                                                                                |
+|                                  Argument | Description                                                                                                 |
+| ----------------------------------------: | ----------------------------------------------------------------------------------------------------------- |
+|                            -s, --src=PATH | Source block device or disk image                                                                           |
+|                            -d, --dst=PATH | Destination block device or disk image                                                                      |
+|                             --make-digest | Creates only digest file                                                                                    |
+|                         -f, --digest=PATH | Digest file stores checksums of the blocks from sync                                                        |
+|                              --make-delta | Creates a delta file from src                                                                               |
+|                             --apply-delta | Applies a delta file to dst                                                                                 |
+|                          -D, --delta=PATH | Delta file path. If none, data write to stdout or read from stdin                                           |
+|                   -b, --block-size=N[KMG] | Block size in N bytes for writing and checksum calculations (default:4K)                                    |
+|                           -a, --algo=ALGO | Cryptographic hash algorithm which is used to compute checksum to compare blocks (default:CRC32 or XXH3LOW) |
+|                          -l, --list-algos | It prints all supported hash algorithms                                                                     |
+|                         --benchmark-algos | Benchmark all supported hash algorithms                                                                     |
+|                             --digest-info | Checks digest file, prints info and exit                                                                    |
+|                              --delta-info | Checks delta file, prints info and exit                                                                     |
+|                      --buffer-size=N[KMG] | Size of the buffer in N bytes for processing data per device (default:2M)                                   |
+|               --progress, --show-progress | Show current progress while syncing                                                                         |
+| --progress-detail, --show-progress-detail | Show more detailed progress which generates a lot of writes on the console                                  |
+|                                    --mmap | Use a system mmap instead of direct read and write method                                                   |
+|                              --no-compare | Copy all data from src to dst without comparing differences                                                 |
+|                             --sync-writes | Immediately flushes and writes data to the disk specified at --buffer-size                                  |
+|                              --dont-write | Perform dry run with no updates to target and digest file                                                   |
+|                       --dont-write-target | Perform run with no updates only to target device                                                           |
+|                       --dont-write-digest | Perform run with no updates only to digest file                                                             |
+|                                   --force | Allows to overwrite files and override parameters which was generated before                                |
+|                                  --silent | Doesn't print any messages                                                                                  |
+|                                -h, --help | Show this help message                                                                                      |
+|                             -V, --version | Show version                                                                                                |
 
 ## Hashing algos
 
@@ -194,7 +194,7 @@ Copy with reflink runs on a locally mounted partition or mounted as network repo
 
 ```console
 $ blocksync-fast -s /dev/vol -d /mnt/backups/vol-current.img -f /var/cache/backups/vol.digest
-$ cp --reflink vol-current.img vol-2023-05-07-00.img
+$ cp --reflink vol-current.img vol-2024-05-07-00.img
 ```
 
 Alternatively, deduplication can also be made by creating snapshots in the BTRFS repository. Snapshots can be only taken on the host where the BTRFS partition is mounted locally.
@@ -202,7 +202,7 @@ Alternatively, deduplication can also be made by creating snapshots in the BTRFS
 ```console
 $ blocksync-fast -s /dev/vol1 -d /mnt/backups/current/vol1.img -f /var/cache/backups/vol1.digest
 $ blocksync-fast -s /dev/vol2 -d /mnt/backups/current/vol2.img -f /var/cache/backups/vol2.digest
-$ btrfs subvolume snapshot /mnt/backups/current/ /mnt/backups/2023-05-07-00/
+$ btrfs subvolume snapshot /mnt/backups/current/ /mnt/backups/2024-05-07-00/
 ```
 
 #### Deduplication without Copy-on-Write repository
@@ -213,37 +213,37 @@ The disadvantage of this solution is the lack of direct access to the full disk 
 Files in repository from 7 days rotation cycles:
 
 ```console
-vol-2023-05-01-00.img - full image from oldest cycle
-vol-2023-05-02-00.delta
-vol-2023-05-03-00.delta
-vol-2023-05-04-00.delta
-vol-2023-05-05-00.delta
-vol-2023-05-06-00.delta
-vol-2023-05-07-00.delta - patch from the latest cycle
+vol-2024-05-01-00.img - full image from oldest cycle
+vol-2024-05-02-00.delta
+vol-2024-05-03-00.delta
+vol-2024-05-04-00.delta
+vol-2024-05-05-00.delta
+vol-2024-05-06-00.delta
+vol-2024-05-07-00.delta - patch from the latest cycle
 ```
 
 Deleting the oldest copy during rotation:
 
 ```console
-$ blocksync-fast -d vol-2023-05-02-00.img --apply-delta -D vol-2023-05-01-00.delta
-$ mv vol-2023-05-01-00.img vol-2023-05-02-00.img
+$ blocksync-fast -d vol-2024-05-02-00.img --apply-delta -D vol-2024-05-01-00.delta
+$ mv vol-2024-05-01-00.img vol-2024-05-02-00.img
 ```
 
 Creating the newest copy during rotation:
 
 ```console
-$ blocksync-fast -s /dev/vol -f /var/cache/backups/vol.digest --make-delta -D vol-2023-05-08-00.delta
+$ blocksync-fast -s /dev/vol -f /var/cache/backups/vol.digest --make-delta -D vol-2024-05-08-00.delta
 ```
 
-Restore disk image vol-2023-05-07-01.img:
+Restore disk image vol-2024-05-07-01.img:
 
 ```console
-$ cp vol-2023-05-02-00.img vol-2023-05-06-00.img
-$ blocksync-fast -d vol-2023-05-06-00.img --apply-delta -D vol-2023-05-03-00.delta
-$ blocksync-fast -d vol-2023-05-06-00.img --apply-delta -D vol-2023-05-04-00.delta
-$ blocksync-fast -d vol-2023-05-06-00.img --apply-delta -D vol-2023-05-05-00.delta
-$ blocksync-fast -d vol-2023-05-06-00.img --apply-delta -D vol-2023-05-06-00.delta
-$ blocksync-fast -d vol-2023-05-06-00.img --apply-delta -D vol-2023-05-07-00.delta
+$ cp vol-2024-05-02-00.img vol-2024-05-06-00.img
+$ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-03-00.delta
+$ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-04-00.delta
+$ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-05-00.delta
+$ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-06-00.delta
+$ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-07-00.delta
 ```
 
 ## Limitations and Notes
