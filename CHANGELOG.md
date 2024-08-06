@@ -4,7 +4,16 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
- 
+
+## [1.0.4] - 2024-08-06
+### Added
+- Streams: allows use STDIN as source image
+- Options: size option to specify the size of source data
+- Progress: higher percentage precision in tracking progress for large images
+- Options: --show-progress as alias --progress
+- Options: --show-progress-detail as alias --progress-detail
+- Scripts: gfs-lvm-backup.sh with example file
+
 ## [1.0.3] - 2023-05-15
 ### Added
 - Options: delta-info and digest-info to check and prints information from file header

@@ -1,5 +1,6 @@
+#!/bin/bash
 
-# ./Makefile.am - this file is a part of program blocksync-fast
+# ./scripts/example-volume1-backup - this file is a part of program blocksync-fast
 
 # Copyright (C) 2024 Marcin Koczwara <mk@nethorizon.pl>
 
@@ -14,5 +15,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
-SUBDIRS = src
+
+# START SETTINGS
+
+VG='vg1'
+LV='volume1'
+
+SNAP_NAME='snap-backup'
+SNAP_SIZE='5G'
+
+DIGEST_PATH="/var/db/blocksync/$LV.digest"
+DESTDIR="/mnt/backups"
+
+ROTATE_DAYS=7
+ROTATE_WEEKS=4
+ROTATE_MONTHS=0
+
+# END SETTINGS
+
+source ./gfs-lvm-backup.sh

@@ -1,7 +1,7 @@
 /*
  ./src/blocksync-fast.c - this file is a part of program blocksync-fast
 
- Copyright (C) 2023 Marcin Koczwara <mk@nethorizon.pl>
+ Copyright (C) 2024 Marcin Koczwara <mk@nethorizon.pl>
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -55,6 +55,10 @@ void print_help(void)
 
 					   "-d, --dst=PATH\n"
 					   "  Destination block device or disk image\n"
+					   "\n"
+
+					   "-S, --size=N[KMG]\n"
+					   "  Data size in N bytes for STDIN data or override disk image size\n"
 					   "\n"
 
 					   "--make-digest\n"
@@ -112,11 +116,11 @@ void print_help(void)
 					   "  (default:2M)\n"
 					   "\n"
 
-					   "--progress\n"
+					   "--progress, --show-progress\n"
 					   "  Show current progress while syncing\n"
 					   "\n"
 
-					   "--progress-detail\n"
+					   "--progress-detail, --show-progress-detail\n"
 					   "  Show more detailed progress which generates a lot of writes on the console\n"
 					   "\n"
 
@@ -184,16 +188,12 @@ void print_algos(void)
 
 void print_progress(void)
 {
-	prog.c_per = (((float)(oper.num_block + 1) / (float)param.num_blocks) * 100);
+	prog.c_per = floor((((float)(oper.num_block + 1) / (float)param.num_blocks) * 100) * param.pro_fact) / param.pro_fact;
 
-	if (prog.p_per != prog.c_per)
-	{
-		fprintf(flag.prst, "\rProgress: %d%%", prog.c_per);
-		fflush(stdout);
+	if (prog.p_per != prog.c_per || oper.num_block < 1) {
+		fprintf(flag.prst, param.pro_form, prog.c_per);
+		fflush(stdout);		
 	}
-
-	if (oper.num_block + 1 == param.num_blocks)
-		fprintf(flag.prst, "\n");
 
 	prog.p_per = prog.c_per;
 }
@@ -249,22 +249,30 @@ void print_detail_progress(void)
 
 void print_summary(void)
 {
-	if (flag.progress > 1)
+	if (flag.progress > 0)
 		fprintf(flag.prst, "\n");
 
 	fprintf(flag.prst, "%s: %zu/%zu blocks, %zu/%zu bytes.\n",
 			flag.oper_mode == MAKEDIGEST ? (IS_MODE(digest.open_mode, READ) ? "Updated" : "Created") : (IS_MODE(dst.open_mode, READ) ? "Updated" : "Copied"),
 			prog.wri_blocks, param.num_blocks, prog.wri_bytes, param.data_size);
+
+	if (flag.oper_mode == BLOCKSYNC && oper.num_block + 1 < param.num_blocks) {
+		fprintf(flag.prst, "Expected: %s, but was received: %s\n",
+				format_units(param.data_size, true), format_units(src.abs_off, true));
+		fprintf(stderr, "%s: The provided data is insufficient.\n", process_name);
+	}
 }
 
 void parse_options(int argc, char **argv)
 {
-	static const char *short_options = "hVs:d:f:D:b:a:l";
+	static const char *short_options = "hVs:d:S:f:D:b:a:l";
 	static struct option long_options[] = {
 		{"help", no_argument, 0, 'h'},
 		{"version", no_argument, 0, 'V'},
 		{"progress", no_argument, &flag.progress, 1},
+		{"show-progress", no_argument, &flag.progress, 1},
 		{"progress-detail", no_argument, &flag.progress, 2},
+		{"show-progress-detail", no_argument, &flag.progress, 2},
 		{"silent", no_argument, &flag.silent, 1},
 		{"force", no_argument, &flag.force, 1},
 		{"mmap", no_argument, &flag.mmap, 1},
@@ -275,6 +283,7 @@ void parse_options(int argc, char **argv)
 		{"dont-write-digest", no_argument, &flag.dont_write, 1}, //(01)
 		{"src", required_argument, 0, 's'},
 		{"dst", required_argument, 0, 'd'},
+		{"size", required_argument,	0, 'S'},
 		{"digest", required_argument, 0, 'f'},
 		{"delta", required_argument, 0, 'D'},
 		{"buffer-size", required_argument, 0, 1001},
@@ -307,6 +316,10 @@ void parse_options(int argc, char **argv)
 			break;
 		case 'd':
 			dst.path = optarg;
+			break;
+		case 'S':
+			param.h_data_size = optarg;
+			param.data_size = parse_units(optarg);
 			break;
 		case 'D':
 			delta.path = optarg;
@@ -392,6 +405,7 @@ void blocksync(void)
 		prog.c_dst_wri = true;
 		prog.c_dst_mat = false;
 		prog.c_dig_mat = false;
+
 		if (IS_MODE(digest.open_mode, WRITE))
 			prog.c_dig_wri = true;
 		else
@@ -902,7 +916,7 @@ void init_params(void)
 
 	if (flag.oper_mode == BLOCKSYNC || flag.oper_mode == MAKEDELTA || flag.oper_mode == MAKEDIGEST)
 	{
-		if (IS_MODE(src.open_mode, DIRECT))
+		if (IS_MODE(src.open_mode, DIRECT) || IS_MODE(src.open_mode, PIPE))
 			src.buf_data = malloc(src.buf_size);
 
 		if (IS_MODE(digest.open_mode, WRITE))
@@ -941,6 +955,17 @@ void init_params(void)
 		if (param.algo.size > param.block_size)
 			fprintf(flag.prst, "Warning: block size '%ld' is smaller than hash '%s' size\n", param.block_size, param.algo.symbol);
 	}
+
+	if (param.data_size > (size_t)(1UL * 1024 * 1024 * 1024 * 1024)) {
+		param.pro_prec = 2;
+		param.pro_fact = 100;
+	}
+	else if (param.data_size > (size_t)(100UL * 1024 * 1024 * 1024)) {
+		param.pro_prec = 1;
+		param.pro_fact = 10;
+	}
+
+	snprintf(param.pro_form, sizeof(param.pro_form), "\rProgress: %%.%df%s", param.pro_prec, "%%");
 }
 
 int main(int argc, char **argv)

@@ -1,7 +1,7 @@
 /*
  ./src/globals.h - this file is a part of program blocksync-fast
 
- Copyright (C) 2023 Marcin Koczwara <mk@nethorizon.pl>
+ Copyright (C) 2024 Marcin Koczwara <mk@nethorizon.pl>
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@
 #define AUTHORS \
 	"Marcin Koczwara <mk@nethorizon.pl>"
 
-#define BSF_VERSION "1.03"
-#define COPYRIGHT "Copyright (C) 2023 " AUTHORS
+#define BSF_VERSION "1.04"
+#define COPYRIGHT "Copyright (C) 2024 " AUTHORS
 #define LICENSE "Licensed under the Apache License, Version 2.0; <http://www.apache.org/licenses/LICENSE-2.0>"
 #define FREE "This is free software: distributed on an \"AS IS\" BASIS,"
 #define WARRANTY "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND"
@@ -176,7 +176,11 @@ extern struct param
 	size_t block_size;
 	size_t max_buf_size;
 	size_t num_blocks;
+	char *h_data_size;
 	size_t data_size;
+	int pro_prec;
+	int pro_fact;
+	char pro_form[20];
 	bool hash_use;
 	const char *hash_algo;
 	struct symbol_value_desc algo;
@@ -210,7 +214,7 @@ extern struct prog
 {
 	size_t wri_bytes;
 	size_t wri_blocks;
-	char p_per, c_per;
+	double p_per, c_per;
 	bool p_dst_wri, c_dst_wri;
 	bool p_dst_mat, c_dst_mat;
 	bool p_dig_wri, c_dig_wri;

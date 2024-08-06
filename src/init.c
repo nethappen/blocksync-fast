@@ -1,7 +1,7 @@
 /*
  ./src/init.c - this file is a part of program blocksync-fast
 
- Copyright (C) 2023 Marcin Koczwara <mk@nethorizon.pl>
+ Copyright (C) 2024 Marcin Koczwara <mk@nethorizon.pl>
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -74,20 +74,51 @@ void check_block_size(void)
 
 void init_src_device(void)
 {
-    src.fd = open(src.path, O_RDONLY);
+    if (strcmp(src.path, "-") == 0) {
 
-    if (src.fd < 0 || fstat(src.fd, &src.stat) < 0)
-    {
-        fprintf(stderr, "%s: unable to open source file or device \'%s\': %s\n",
-                process_name, src.path, strerror(errno));
-        cleanup(EXIT_FAILURE);
+        if (param.h_data_size == NULL) {
+            fprintf(stderr, "%s: missing required data size data size parameter for stdin\n", process_name);
+            fprintf(flag.prst, "Please add '-S or --size=N[KMG]' to specify data size\n");
+            cleanup(EXIT_FAILURE);
+        }
+
+        src.fd = STDIN_FILENO;
+        src.open_mode = PIPE_R;
+        src.data_size = param.data_size;
+
+        fprintf(flag.prst, "Source device: STDIN has specified size of %s\n",
+            format_units(src.data_size, true));
     }
+    else {
 
-    src.open_mode |= READ;
-    src.data_size = lseek(src.fd, 0, SEEK_END);
-    lseek(src.fd, 0, SEEK_SET);
-    fprintf(flag.prst, "Source device: '%s' has size of %s\n",
-            src.path, format_units(src.data_size, true));
+        src.fd = open(src.path, O_RDONLY);
+
+        if (src.fd < 0 || fstat(src.fd, &src.stat) < 0)
+        {
+            fprintf(stderr, "%s: unable to open source file or device \'%s\': %s\n",
+                    process_name, src.path, strerror(errno));
+            cleanup(EXIT_FAILURE);
+        }
+
+        src.open_mode |= READ;
+        src.data_size = lseek(src.fd, 0, SEEK_END);
+        lseek(src.fd, 0, SEEK_SET);
+
+        if (param.h_data_size != NULL && param.data_size != src.data_size) {
+            if (param.data_size > src.data_size) {
+                fprintf(stderr, "%s: specified data size '%s' is greater than '%s'\n",
+                    process_name, format_units(param.data_size, true), format_units(src.data_size, true));
+                cleanup(EXIT_FAILURE);
+            }
+            
+            src.data_size = param.data_size;
+            fprintf(flag.prst, "Source device: '%s' has override size of %s\n",
+                    src.path, format_units(src.data_size, true));
+        }
+        else
+            fprintf(flag.prst, "Source device: '%s' has size of %s\n",
+                    src.path, format_units(src.data_size, true));
+    }
 
     if (src.data_size < 1)
     {

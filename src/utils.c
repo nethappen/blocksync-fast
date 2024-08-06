@@ -1,7 +1,7 @@
 /*
  ./src/utils.c - this file is a part of program blocksync-fast
 
- Copyright (C) 2023 Marcin Koczwara <mk@nethorizon.pl>
+ Copyright (C) 2024 Marcin Koczwara <mk@nethorizon.pl>
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 */
 
 #include "globals.h"
+#include <math.h>		// ceil
 
 long parse_units(char *size)
 {

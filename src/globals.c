@@ -1,7 +1,7 @@
 /*
  ./src/globals.c - this file is a part of program blocksync-fast
 
- Copyright (C) 2023 Marcin Koczwara <mk@nethorizon.pl>
+ Copyright (C) 2024 Marcin Koczwara <mk@nethorizon.pl>
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ struct dev src, dst, digest, delta = {NULL, -1, {}, 0, 0, 0, 0, 0, 0, 0, 0, NULL
 struct bsf_header digest_header, delta_header = {"", "", 0, 0, 0, NONE};
 struct oper oper = {0, 0, 0, 0, NULL, NULL};
 struct flag flag = {BLOCKSYNC, 0, 0, 0, 0, 0, 0, 0, NULL};
-struct prog prog = {0, 0, 0, false, false, false, false, false, false, false, false};
+struct prog prog = {0, 0, 0, 0, false, false, false, false, false, false, false, false};
 
 char *process_name = PROGRAM_NAME;
 
@@ -78,7 +78,7 @@ const struct symbol_value_desc algos[] =
 
 		{"", 0, 0, 0, ""}};
 
-struct param param = {NULL, D_BLOCK_SIZE, D_BUFFER_SIZE, 0, 0, false, NULL, algos[D_ALGO]};
+struct param param = {NULL, D_BLOCK_SIZE, D_BUFFER_SIZE, 0, NULL, 0, 0, 1, "", false, NULL, algos[D_ALGO]};
 
 void get_ptr(struct dev *dev)
 {
