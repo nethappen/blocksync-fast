@@ -23,7 +23,7 @@
 #define AUTHORS \
 	"Marcin Koczwara <mk@nethorizon.pl>"
 
-#define BSF_VERSION "1.04"
+#define BSF_VERSION "1.05"
 #define COPYRIGHT "Copyright (C) 2024 " AUTHORS
 #define LICENSE "Licensed under the Apache License, Version 2.0; <http://www.apache.org/licenses/LICENSE-2.0>"
 #define FREE "This is free software: distributed on an \"AS IS\" BASIS,"

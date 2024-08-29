@@ -18,7 +18,7 @@
 
 
 AC_PREREQ([2.71])
-AC_INIT([blocksync-fast], [1.03], [mk@nethorizon.pl])
+AC_INIT([blocksync-fast], [1.05], [mk@nethorizon.pl])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([src/blocksync-fast.c])
 AC_CONFIG_HEADERS([config.h])
@@ -45,7 +45,7 @@ AC_CHECK_FUNCS([ftruncate getpagesize munmap strcasecmp strerror strtoul])
 
 # Checking for libgcrypt
 LIBGCRYPT_MIN_VERSION=1.9.0
-AM_PATH_LIBGCRYPT($LIBGCRYPT_MIN_VERSION, HAVE_GCRYPT=yes, HAVE_GRYPT=no)
+AM_PATH_LIBGCRYPT($LIBGCRYPT_MIN_VERSION, HAVE_GCRYPT=yes, HAVE_GCRYPT=no)
 if test "x$HAVE_GCRYPT" = "xno"; then
     AC_MSG_ERROR([libgcrypt not found, please install it])
 fi
