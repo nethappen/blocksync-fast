@@ -131,16 +131,14 @@ void map_buffer(struct dev *dev)
 
 	if (IS_MODE(dev->open_mode, PIPE_R))
 	{
-		dev->buf_size = dev->max_buf_size;
+		dev->buf_size = (dev->data_size - abs_off) >= dev->max_buf_size ? dev->max_buf_size : (dev->data_size - abs_off);
 
 		size_t rbytes = 0;
 		size_t tbytes = 0;
 
 		while (tbytes < dev->buf_size)
 		{
-
 			rbytes = read(dev->fd, (dev->buf_data + tbytes), (dev->buf_size - tbytes));
-			tbytes += rbytes;
 
 			if (rbytes < 0)
 			{
@@ -152,8 +150,10 @@ void map_buffer(struct dev *dev)
 			{
 				dev->buf_size = tbytes;
 				dev->data_size = abs_off + tbytes;
-				// break;
+				break;
 			}
+
+			tbytes += rbytes;
 		}
 	}
 
@@ -244,6 +244,17 @@ void digest_wri_flush(size_t flush)
 				if (pwrite(digest.fd, ptr, oper.digest_wri_buf_size, abs_buf_off) < 0)
 				{
 					fprintf(stderr, "%s: error while writing to '%s' : %s\n", process_name, digest.path, strerror(errno));
+					cleanup(EXIT_FAILURE);
+				}
+			}
+
+			if (IS_MODE(digest.open_mode, PIPE_W))
+			{
+				off_t rel_buf_off = digest.rel_off - wri_buf_off;
+				const void *ptr = oper.hash_buf + (rel_buf_off - digest.mov_off);
+				if (write(digest.fd, ptr, oper.digest_wri_buf_size) < 0)
+				{
+					fprintf(stderr, "%s: error while writing to stdout: %s\n", process_name, strerror(errno));
 					cleanup(EXIT_FAILURE);
 				}
 			}

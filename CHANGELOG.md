@@ -5,18 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.6] - 2024-09-05
+### Added
+- Streams: allows use STDOUT for digest data in Make-digest operation
+### Fixed
+- Improved STDIN stream handling: the program now notifies if the input size exceeds or is smaller than the declared limit.
+- Minor corrections
+
 ## [1.0.5] - 2024-08-29
 ### Fixed
 - Fixed issues with detection of the `libgcrypt` library during configuration
 
+
 ## [1.0.4] - 2024-08-06
 ### Added
 - Streams: allows use STDIN as source image
-- Options: size option to specify the size of source data
+- Options: -S or --size option to specify the size of source data
 - Progress: higher percentage precision in tracking progress for large images
 - Options: --show-progress as alias --progress
 - Options: --show-progress-detail as alias --progress-detail
 - Scripts: gfs-lvm-backup.sh with example file
+
 
 ## [1.0.3] - 2023-05-15
 ### Added

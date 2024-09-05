@@ -169,14 +169,16 @@ void init_dst_device(void)
 
         if (flag.oper_mode == BLOCKSYNC && dst.data_size != src.data_size)
         {
-            fprintf(stderr, "%s: size of syncing block devices mismatch.\n", process_name);
+            fprintf(stderr, "%s: Block devices size mismatch.\n", process_name);
 
             if (flag.force == 0)
             {
                 fprintf(flag.prst, "Try add '--force' argument \n");
                 cleanup(EXIT_FAILURE);
             }
-            fprintf(flag.prst, "Applying new device size\n");
+
+            fprintf(flag.prst, "Target device: '%s' has overwrited size of %s\n",
+                    dst.path, format_units(src.data_size, true));
             // dst.open_mode ^= READ; // allow different size without overwrite
 
             dst.data_size = src.data_size;
@@ -207,52 +209,61 @@ void init_dst_device(void)
 
 void init_digest_file()
 {
-    if (access(digest.path, F_OK) == 0)
-        digest.open_mode |= READ;
+    if (digest.path != NULL) {
+        if (access(digest.path, F_OK) == 0)
+            digest.open_mode |= READ;
 
-    digest.fd = open(digest.path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-    digest.open_mode |= WRITE;
+        digest.fd = open(digest.path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 
-    if (digest.fd < 0 || fstat(digest.fd, &digest.stat) < 0)
-    {
-        fprintf(stderr, "%s: unable to %s digest file \'%s\': %s\n",
-                process_name, IS_MODE(digest.open_mode, READ) ? "open" : "create",
-                digest.path, strerror(errno));
-
-        cleanup(EXIT_FAILURE);
-    }
-
-    param.hash_use = true;
-
-    if (!IS_MODE(digest.open_mode, READ))
-        fprintf(flag.prst, "Creating digest file: '%s'\n",
-                digest.path);
-    else
-    {
-        digest.data_size = lseek(digest.fd, 0, SEEK_END);
-        lseek(digest.fd, 0, SEEK_SET);
-
-        fprintf(flag.prst, "Digest file: '%s' has size of %s\n",
-                digest.path, format_units(digest.data_size, true));
-    }
-
-    if (IS_MODE(digest.open_mode, READ) && digest.data_size < HEADER_SIZE)
-    {
-        fprintf(stderr, "%s: digest file '%s' is invalid\n", process_name, digest.path);
-        if (flag.force == 0)
+        if (digest.fd < 0 || fstat(digest.fd, &digest.stat) < 0)
         {
-            fprintf(flag.prst, "Try add '--force' argument to overwrite digest file\n");
+            fprintf(stderr, "%s: unable to %s digest file \'%s\': %s\n",
+                    process_name, IS_MODE(digest.open_mode, READ) ? "open" : "create",
+                    digest.path, strerror(errno));
+
             cleanup(EXIT_FAILURE);
         }
+    }
+    else {
+        fprintf(flag.prst, "Data to make-digest is write to STDOUT\n");
+        digest.fd = STDOUT_FILENO;
+        digest.open_mode = PIPE;
+    }
 
-        digest.open_mode ^= READ;
-        digest.data_size = HEADER_SIZE;
+    digest.open_mode |= WRITE;
+    param.hash_use = true;
+
+    if (digest.path != NULL) {
+        if (!IS_MODE(digest.open_mode, READ))
+            fprintf(flag.prst, "Creating digest file: '%s'\n",
+                    digest.path);
+        else
+        {
+            digest.data_size = lseek(digest.fd, 0, SEEK_END);
+            lseek(digest.fd, 0, SEEK_SET);
+
+            fprintf(flag.prst, "Digest file: '%s' has size of %s\n",
+                    digest.path, format_units(digest.data_size, true));
+        }
+
+        if (IS_MODE(digest.open_mode, READ) && digest.data_size < HEADER_SIZE)
+        {
+            fprintf(stderr, "%s: digest file '%s' is invalid\n", process_name, digest.path);
+            if (flag.force == 0)
+            {
+                fprintf(flag.prst, "Try add '--force' argument to overwrite digest file\n");
+                cleanup(EXIT_FAILURE);
+            }
+
+            digest.open_mode ^= READ;
+            digest.data_size = HEADER_SIZE;
+        }
     }
 
     if (IS_MODE(digest.open_mode, MMAP))
         digest.max_buf_size = ((int)HEADER_SIZE < PAGE_SIZE ? PAGE_SIZE : (size_t)HEADER_SIZE);
 
-    if (IS_MODE(digest.open_mode, DIRECT))
+    if (IS_MODE(digest.open_mode, DIRECT) || IS_MODE(digest.open_mode, PIPE))
     {
         digest.max_buf_size = (size_t)HEADER_SIZE;
         digest.buf_data = malloc(digest.max_buf_size);
@@ -384,6 +395,15 @@ void init_digest_file()
             fprintf(stderr, "%s: error while writing to '%s' : %s\n", process_name, digest.path, strerror(errno));
             cleanup(EXIT_FAILURE);
         }
+
+    if (IS_MODE(digest.open_mode, PIPE) && !isatty(STDOUT_FILENO))
+    {
+        if (write(digest.fd, (const void *)&digest_header, (size_t)sizeof(digest_header)) < 0)
+        {
+            fprintf(stderr, "%s: error while writing to stdout: %s\n", process_name, strerror(errno));
+            cleanup(EXIT_FAILURE);
+        }
+    }
 
     digest.abs_off = digest.rel_off = HEADER_SIZE;
     sync_data(&digest);

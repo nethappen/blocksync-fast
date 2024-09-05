@@ -56,7 +56,8 @@ Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms,
 | ----------------------------------------: | ----------------------------------------------------------------------------------------------------------- |
 |                            -s, --src=PATH | Source block device or disk image                                                                           |
 |                            -d, --dst=PATH | Destination block device or disk image                                                                      |
-|                             --make-digest | Creates only digest file                                                                                    |
+|                         -S, --size=N[KMG] | Data size in N bytes for STDIN data or override disk image size                                             |
+|                             --make-digest | Creates only digest file or write digest to stdout                                                          |
 |                         -f, --digest=PATH | Digest file stores checksums of the blocks from sync                                                        |
 |                              --make-delta | Creates a delta file from src                                                                               |
 |                             --apply-delta | Applies a delta file to dst                                                                                 |

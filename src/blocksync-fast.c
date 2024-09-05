@@ -56,13 +56,13 @@ void print_help(void)
 					   "-d, --dst=PATH\n"
 					   "  Destination block device or disk image\n"
 					   "\n"
-
+					   
 					   "-S, --size=N[KMG]\n"
 					   "  Data size in N bytes for STDIN data or override disk image size\n"
 					   "\n"
 
 					   "--make-digest\n"
-					   "  Creates only digest file\n"
+					   "  Creates only digest file or write digest to stdout\n"
 					   "\n"
 
 					   "-f, --digest=PATH\n"
@@ -256,10 +256,18 @@ void print_summary(void)
 			flag.oper_mode == MAKEDIGEST ? (IS_MODE(digest.open_mode, READ) ? "Updated" : "Created") : (IS_MODE(dst.open_mode, READ) ? "Updated" : "Copied"),
 			prog.wri_blocks, param.num_blocks, prog.wri_bytes, param.data_size);
 
-	if (flag.oper_mode == BLOCKSYNC && oper.num_block + 1 < param.num_blocks) {
-		fprintf(flag.prst, "Expected: %s, but was received: %s\n",
-				format_units(param.data_size, true), format_units(src.abs_off, true));
-		fprintf(stderr, "%s: The provided data is insufficient.\n", process_name);
+	if ( flag.oper_mode == BLOCKSYNC && IS_MODE(src.open_mode, PIPE_R) ) {
+	
+		if (param.data_size > src.data_size) {
+			fprintf(stderr, "%s: The provided data is insufficient.\n", process_name);
+			fprintf(flag.prst, "Expected: %s, but was received: %s\n",
+					format_units(param.data_size, true), format_units(src.data_size, true));
+		}
+		else {
+			int more_bytes = 0;
+			if (ioctl(STDIN_FILENO, FIONREAD, &more_bytes) == 0 && more_bytes > 0)
+				fprintf(flag.prst, "Warning: additional data found in STDIN. Data has been truncated to the specified --size.\n");
+		}
 	}
 }
 
@@ -739,7 +747,7 @@ void make_digest(void)
 
 void init_params(void)
 {
-	if (flag.oper_mode == MAKEDELTA && delta.path == NULL)
+	if (flag.oper_mode == MAKEDELTA && delta.path == NULL || flag.oper_mode == MAKEDIGEST && digest.path == NULL)
 		flag.prst = stderr;
 
 	if (flag.silent)
@@ -800,7 +808,6 @@ void init_params(void)
 
 		if (src.path == NULL)
 		{
-
 			if (src.path == NULL)
 				fprintf(stderr, "%s - you need to specify the source path (-s, --src=PATH)\n", process_name);
 
@@ -840,15 +847,9 @@ void init_params(void)
 	{
 		fprintf(flag.prst, "Operation mode: make-digest\n");
 
-		if (src.path == NULL || digest.path == NULL)
+		if (src.path == NULL)
 		{
-
-			if (src.path == NULL)
-				fprintf(stderr, "%s - you need to specify the source path (-s, --src=PATH)\n", process_name);
-
-			if (dst.path == NULL)
-				fprintf(stderr, "%s - you need to specify the digest path (-f, --digest=PATH)\n", process_name);
-
+			fprintf(stderr, "%s - you need to specify the source path (-s, --src=PATH)\n", process_name);
 			fprintf(flag.prst, "Try '%s --help' for more information.\n", process_name);
 			cleanup(EXIT_FAILURE);
 		}
@@ -925,7 +926,7 @@ void init_params(void)
 			digest.max_buf_size = (src.max_buf_size / src.block_size) * digest.block_size;
 			bool buf_adj_digest = adjust_buffer(&digest.max_buf_size, digest.block_size);
 
-			if (IS_MODE(digest.open_mode, DIRECT))
+			if (IS_MODE(digest.open_mode, DIRECT) || IS_MODE(digest.open_mode, PIPE))
 				digest.buf_data = realloc(digest.buf_data, digest.max_buf_size);
 
 			map_buffer(&digest);
