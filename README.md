@@ -21,6 +21,11 @@ Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms,
  $ make install
 ```
 
+If you encounter problems with the make command like "missing: line 85: aclocal-1.17: command not found" do:
+```console
+$ autoreconf --install
+```
+
 ## Usage
 
 ```console
