@@ -18,7 +18,7 @@
 
 
 AC_PREREQ([2.71])
-AC_INIT([blocksync-fast], [1.06], [mk@nethorizon.pl])
+AC_INIT([blocksync-fast], [1.07], [mk@nethorizon.pl])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([src/blocksync-fast.c])
 AC_CONFIG_HEADERS([config.h])

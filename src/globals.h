@@ -23,7 +23,7 @@
 #define AUTHORS \
 	"Marcin Koczwara <mk@nethorizon.pl>"
 
-#define BSF_VERSION "1.06"
+#define BSF_VERSION "1.07"
 #define COPYRIGHT "Copyright (C) 2024 " AUTHORS
 #define LICENSE "Licensed under the Apache License, Version 2.0; <http://www.apache.org/licenses/LICENSE-2.0>"
 #define FREE "This is free software: distributed on an \"AS IS\" BASIS,"
@@ -234,7 +234,7 @@ void *hash_alloc(size_t size, int lib);
 void hash_buffer(int algo, int lib, int hash_size, void *digest, const void *buffer, size_t size);
 void hash_free(int algo, int lib, void *buf);
 void makedelta_wri_flush_buf();
-void applydelta_wri_flush_buf();
+void applydelta_wri_flush_buf(size_t);
 void oper_delta_buf_free();
 void cleanup(int result);
 

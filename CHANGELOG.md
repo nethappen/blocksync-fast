@@ -5,12 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.7] - 2025-05-03
+### Fixed
+- Fixed compilation issues when using GCC 15.
+
+
 ## [1.0.6] - 2024-09-05
 ### Added
 - Streams: allows use STDOUT for digest data in Make-digest operation
 ### Fixed
 - Improved STDIN stream handling: the program now notifies if the input size exceeds or is smaller than the declared limit.
 - Minor corrections
+
 
 ## [1.0.5] - 2024-08-29
 ### Fixed
