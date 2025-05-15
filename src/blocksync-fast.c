@@ -932,8 +932,8 @@ void init_params(void)
 		}
 
 		if (param.block_size < src.stat.st_blksize)
-			fprintf(flag.prst, "Warning: given block size is smaller than the block size of the source device, which is %lu bytes\n",
-					src.stat.st_blksize);
+			fprintf(flag.prst, "Warning: given block size is smaller than the block size of the source device, which is %llu bytes\n",
+					(unsigned long long)src.stat.st_blksize);
 	}
 
 	if (flag.oper_mode == BLOCKSYNC || flag.oper_mode == APPLYDELTA)
