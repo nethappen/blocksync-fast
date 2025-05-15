@@ -251,9 +251,9 @@ void print_summary(void)
 	if (flag.progress > 0)
 		fprintf(flag.prst, "\n");
 
-	fprintf(flag.prst, "%s: %zu/%zu blocks, %zu/%zu bytes.\n",
+	fprintf(flag.prst, "%s: %zu/%zu blocks, %zu/%llu bytes.\n",
 			flag.oper_mode == MAKEDIGEST ? (IS_MODE(digest.open_mode, READ) ? "Updated" : "Created") : (IS_MODE(dst.open_mode, READ) ? "Updated" : "Copied"),
-			prog.wri_blocks, param.num_blocks, prog.wri_bytes, param.data_size);
+			prog.wri_blocks, param.num_blocks, prog.wri_bytes, (unsigned long long)param.data_size);
 
 	if ( flag.oper_mode == BLOCKSYNC && IS_MODE(src.open_mode, PIPE_R) ) {
 	
@@ -956,11 +956,11 @@ void init_params(void)
 			fprintf(flag.prst, "Warning: block size '%zu' is smaller than hash '%s' size\n", param.block_size, param.algo.symbol);
 	}
 
-	if (param.data_size > (size_t)(1UL * 1024 * 1024 * 1024 * 1024)) {
+	if (param.data_size > (off_t)(1ULL * 1024 * 1024 * 1024 * 1024)) {
 		param.pro_prec = 2;
 		param.pro_fact = 100;
 	}
-	else if (param.data_size > (size_t)(100UL * 1024 * 1024 * 1024)) {
+	else if (param.data_size > (off_t)(100ULL * 1024 * 1024 * 1024)) {
 		param.pro_prec = 1;
 		param.pro_fact = 10;
 	}
