@@ -937,8 +937,11 @@ void init_params(void)
 	if ((flag.oper_mode == MAKEDELTA && delta.path == NULL) || (flag.oper_mode == MAKEDIGEST && digest.path == NULL))
 		flag.prst = stderr;
 
-	if (flag.silent)
-		freopen("/dev/null", "w", flag.prst);
+	if (flag.silent && (NULL == freopen("/dev/null", "w", flag.prst)))
+	{
+		fprintf(stderr, "No /dev/null!?\n");
+		cleanup(EXIT_FAILURE);
+	}
 
 	init_map_methods();
 
