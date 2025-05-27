@@ -587,6 +587,114 @@ void make_delta(void)
 	dev_truncate(&delta);
 }
 
+void make_delta_era(void)
+{
+	size_t digest_flush = 0;
+	bool dev_reload = false;
+	bool digest_reload = false;
+	bool delta_reload = false;
+
+	while (src.abs_off < src.data_size)
+	{
+		if ((src.abs_off + src.block_size) > src.data_size)
+		{
+			src.block_size = src.data_size % src.block_size;
+			delta.block_size = sizeof(u_int64_t) + src.block_size;
+		}
+
+		dev_reload = check_buffer_reload(&src);
+		digest_reload = check_buffer_reload(&digest);
+		delta_reload = check_buffer_reload(&delta);
+
+		if (digest_flush > 0 || digest_reload)
+			digest_wri_flush(digest_flush);
+
+		if (delta_reload)
+		{
+			delta.data_size = delta.abs_off + delta.max_buf_size;
+			dev_truncate(&delta);
+			makedelta_wri_flush_buf();
+			map_buffer(&delta);
+		}
+
+		if (digest_reload || delta_reload)
+		{
+			sync_data(&digest);
+			sync_data(&delta);
+		}
+
+		if (dev_reload)
+			map_buffer(&src);
+
+		if (IS_MODE(digest.open_mode, WRITE) && digest_reload)
+			map_buffer(&digest);
+
+		get_ptr(&src);
+		get_ptr(&digest);
+
+		prog.c_dst_wri = true;
+		prog.c_dst_mat = false;
+		prog.c_dig_mat = false;
+		if (IS_MODE(digest.open_mode, WRITE))
+			prog.c_dig_wri = true;
+		else
+			prog.c_dig_wri = false;
+
+		digest_flush = 0;
+
+		if (param.hash_use)
+			hash_buffer(param.algo.value, param.algo.library, param.algo.size, (void *)(oper.hash_buf + (digest.rel_off - digest.mov_off)), src.ptr_r, src.block_size);
+
+		if (IS_MODE(digest.open_mode, READ))
+		{
+			if (memcmp(digest.ptr_r, (const void *)(oper.hash_buf + (digest.rel_off - digest.mov_off)), param.algo.size) == 0)
+			{
+				prog.c_dst_wri = false;
+				prog.c_dig_wri = false;
+				prog.c_dig_mat = true;
+			}
+		}
+
+		if (prog.c_dst_wri)
+		{
+			prog.wri_blocks++;
+			prog.wri_bytes += src.block_size;
+			oper.dev_wri_buf_size += src.block_size;
+
+			memcpy((void *)(oper.delta_buf + oper.delta_wri_buf_size), (uint64_t *)&src.abs_off, sizeof(uint64_t));
+			memcpy((void *)(oper.delta_buf + oper.delta_wri_buf_size + sizeof(uint64_t)), (const void *)src.ptr_r, src.block_size);
+			oper.delta_wri_buf_size += delta.block_size;
+
+			delta.abs_off += delta.block_size;
+			delta.rel_off += delta.block_size;
+		}
+
+		if (prog.c_dig_wri)
+			oper.digest_wri_buf_size += digest.block_size;
+		else
+			digest_flush = digest.block_size;
+
+		if (flag.progress > 1)
+			print_detail_progress();
+		else if (flag.progress == 1)
+			print_progress();
+
+		digest.abs_off += digest.block_size;
+		digest.rel_off += digest.block_size;
+
+		src.abs_off += src.block_size;
+		src.rel_off += src.block_size;
+
+		oper.num_block++;
+	}
+
+	digest_wri_flush(0);
+	makedelta_wri_flush_buf();
+
+	delta.data_size = delta.abs_off;
+	dev_truncate(&delta);
+}
+
 void apply_delta(void)
 {
 	off_t cur_block_off = 0;
@@ -681,6 +789,78 @@ void apply_delta(void)
 }
 
 void make_digest(void)
+{
+	size_t digest_flush = 0;
+	bool dev_reload = false;
+	bool digest_reload = false;
+
+	while (src.abs_off < src.data_size)
+	{
+		if ((src.abs_off + src.block_size) > src.data_size)
+			src.block_size = src.data_size % src.block_size;
+
+		dev_reload = check_buffer_reload(&src);
+		digest_reload = check_buffer_reload(&digest);
+
+		if (digest_flush > 0 || digest_reload)
+			digest_wri_flush(digest_flush);
+
+		if (digest_reload)
+			sync_data(&digest);
+
+		if (dev_reload)
+			map_buffer(&src);
+
+		if (digest_reload)
+			map_buffer(&digest);
+
+		get_ptr(&src);
+		get_ptr(&digest);
+
+		prog.c_dig_mat = false;
+		prog.c_dig_wri = true;
+
+		digest_flush = 0;
+
+		if (param.hash_use)
+			hash_buffer(param.algo.value, param.algo.library, param.algo.size, (void *)(oper.hash_buf + (digest.rel_off - digest.mov_off)), src.ptr_r, src.block_size);
+
+		if (IS_MODE(digest.open_mode, READ))
+		{
+			if (memcmp(digest.ptr_r, (const void *)(oper.hash_buf + (digest.rel_off - digest.mov_off)), param.algo.size) == 0)
+			{
+				prog.c_dig_wri = false;
+				prog.c_dig_mat = true;
+			}
+		}
+
+		if (prog.c_dig_wri)
+		{
+			oper.digest_wri_buf_size += digest.block_size;
+			prog.wri_blocks++;
+			prog.wri_bytes += digest.block_size;
+		}
+		else
+			digest_flush = digest.block_size;
+
+		if (flag.progress > 1)
+			print_detail_progress();
+		else if (flag.progress == 1)
+			print_progress();
+
+		digest.abs_off += digest.block_size;
+		digest.rel_off += digest.block_size;
+
+		src.abs_off += src.block_size;
+		src.rel_off += src.block_size;
+
+		oper.num_block++;
+	}
+
+	digest_wri_flush(0);
+}
+
+void make_digest_era(void)
 {
 	size_t digest_flush = 0;
 	bool dev_reload = false;
@@ -1009,7 +1189,10 @@ int main(int argc, char **argv)
 
 	case MAKEDELTA:
 		init_params();
-		make_delta();
+		if (NULL != param.era)
+			make_delta_era();
+		else
+			make_delta();
 		print_summary();
 		break;
 
@@ -1021,7 +1204,10 @@ int main(int argc, char **argv)
 
 	case MAKEDIGEST:
 		init_params();
-		make_digest();
+		if (NULL != param.era)
+			make_digest_era();
+		else
+			make_digest();
 		print_summary();
 		break;
 	}
