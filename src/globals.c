@@ -78,7 +78,7 @@ const struct symbol_value_desc algos[] =
 
 		{"", 0, 0, 0, ""}};
 
-struct param param = {NULL, D_BLOCK_SIZE, D_BUFFER_SIZE, 0, NULL, 0, 0, 1, "", false, NULL, algos[D_ALGO]};
+struct param param = {NULL, D_BLOCK_SIZE, D_BUFFER_SIZE, 0, NULL, 0, 0, 1, "", false, NULL, algos[D_ALGO], NULL};
 
 void get_ptr(struct dev *dev)
 {

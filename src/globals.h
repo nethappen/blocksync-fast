@@ -184,6 +184,7 @@ extern struct param
 	bool hash_use;
 	const char *hash_algo;
 	struct symbol_value_desc algo;
+	const char *era;
 } param;
 
 enum oper_modes

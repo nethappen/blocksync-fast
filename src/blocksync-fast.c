@@ -80,6 +80,10 @@ void print_help(void)
 					   "  Delta file path. If none, data write to stdout or read from stdin\n"
 					   "\n"
 
+					   "-e, --era=PATH\n"
+					   "  Era XML file path. If set, will only process denoted blocks\n"
+					   "\n"
+
 					   "-b, --block-size=N[KMG]\n"
 					   "  Block size in N bytes for writing and checksum calculations\n"
 					   "  (default:4K)\n"
@@ -293,6 +297,7 @@ void parse_options(int argc, char **argv)
 		{"size", required_argument,	0, 'S'},
 		{"digest", required_argument, 0, 'f'},
 		{"delta", required_argument, 0, 'D'},
+		{"era", required_argument, 0, 'e'},
 		{"buffer-size", required_argument, 0, 1001},
 		{"block-size", required_argument, 0, 'b'},
 		{"algo", required_argument, 0, 'a'},
@@ -340,6 +345,9 @@ void parse_options(int argc, char **argv)
 			break;
 		case 'a':
 			param.hash_algo = optarg;
+			break;
+		case 'e':
+			param.era = optarg;
 			break;
 		case 1001:
 			param.max_buf_size = parse_units(optarg);
