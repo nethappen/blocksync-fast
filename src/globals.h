@@ -185,6 +185,7 @@ extern struct param
 	const char *hash_algo;
 	struct symbol_value_desc algo;
 	const char *era;
+	size_t era_sectors;
 } param;
 
 enum oper_modes
