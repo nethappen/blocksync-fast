@@ -82,7 +82,7 @@ void print_help(void)
 
 					   "-e, --era=PATH\n"
 					   "  Era XML file path. If set, will only process denoted blocks\n"
-					   "  Note: after mkfs or blkdiscard, you need a full digest sync\n"
+					   "  Note: Era XML does not reflect BLKDISCARD changes (trim, mkfs)\n"
 					   "\n"
 
 					   "-E, --era-sectors=N\n"

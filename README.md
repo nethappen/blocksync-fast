@@ -16,7 +16,7 @@ Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms,
 ## Installation
 
 ```console
- $  CFLAGS="-Wall -Werror -D_FILE_OFFSET_BITS=64 -O3" LIBS="-lm" ./configure
+ $ CFLAGS="-Wall -Werror -D_FILE_OFFSET_BITS=64 -O3" LIBS="-lm" ./configure
  $ make
  $ make install
 ```

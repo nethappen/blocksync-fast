@@ -21,7 +21,8 @@
 
 #define PROGRAM_NAME "blocksync-fast"
 #define AUTHORS \
-	"Marcin Koczwara <mk@nethorizon.pl>"
+	"Marcin Koczwara <mk@nethorizon.pl>" \
+	"Sven-Ola Tuecke <sven-ola@gmx.de>"
 
 #define BSF_VERSION "1.07"
 #define COPYRIGHT "Copyright (C) 2024 " AUTHORS
