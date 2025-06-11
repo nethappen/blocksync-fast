@@ -21,7 +21,8 @@
 
 #define PROGRAM_NAME "blocksync-fast"
 #define AUTHORS \
-	"Marcin Koczwara <mk@nethorizon.pl>"
+	"Marcin Koczwara <mk@nethorizon.pl>" \
+	"Sven-Ola Tuecke <sven-ola@gmx.de>"
 
 #define BSF_VERSION "1.07"
 #define COPYRIGHT "Copyright (C) 2024 " AUTHORS
@@ -104,7 +105,7 @@ extern struct dev
 	int fd;
 	struct stat stat;
 	off_t abs_off, buf_off, rel_off, mov_off;
-	size_t data_size;
+	off_t data_size;
 	size_t block_size;
 	size_t buf_size;
 	size_t max_buf_size;
@@ -177,13 +178,15 @@ extern struct param
 	size_t max_buf_size;
 	size_t num_blocks;
 	char *h_data_size;
-	size_t data_size;
+	off_t data_size;
 	int pro_prec;
 	int pro_fact;
 	char pro_form[20];
 	bool hash_use;
 	const char *hash_algo;
 	struct symbol_value_desc algo;
+	const char *era;
+	size_t era_sectors;
 } param;
 
 enum oper_modes

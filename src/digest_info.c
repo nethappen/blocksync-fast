@@ -63,7 +63,7 @@ void digest_info(void)
 		digest.buf_data = malloc(digest.max_buf_size);
 	}
 
-	size_t dds = digest.data_size;
+	off_t dds = digest.data_size;
 	digest.data_size = HEADER_SIZE;
 	map_buffer(&digest);
 
@@ -158,7 +158,7 @@ void delta_info(void)
 		delta.buf_data = malloc(delta.max_buf_size);
 	}
 
-	size_t dds = delta.data_size;
+	off_t dds = delta.data_size;
 	delta.data_size = HEADER_SIZE;
 	map_buffer(&delta);
 

@@ -16,7 +16,7 @@ Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms,
 ## Installation
 
 ```console
- $ ./configure
+ $ CFLAGS="-Wall -Werror -D_FILE_OFFSET_BITS=64 -O3" LIBS="-lm" ./configure
  $ make
  $ make install
 ```
@@ -251,6 +251,48 @@ $ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-05-00.del
 $ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-06-00.delta
 $ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-07-00.delta
 ```
+
+## DM-Era Support
+
+You can optimize image backups with blocksync-fast when using the device manager "era" feature. With this, you add an extra "era" mapping between a file system and the underlying storage. If you access the "era" mapping instead of the original storage, all write operations are recorded in an extra storage named "era metadata". For details, refer to the Linux kernel document on the topic: https://docs.kernel.org/admin-guide/device-mapper/era.html
+
+You can query which blocks of the "era" mapping where written to since a specified era in the past. If you feed the resulting XML file into blocksync-fast, there will be a substancial operation speed up because only parts of the source device needs to be re-read and checksummed. The "--era file.xml" option is active for "--make-digest" and "--make-delta". Here is an commented example (provided that you have an LVM2 volume group "vg0" with free space as well as root access):
+
+    # Create an empty LV with 1 PE (==4M) size. 4M should be enough for era metadata btree.
+    lvcreate --extents 1 --name era vg0
+    blkdiscard /dev/mapper/vg0-era
+    # Create an LV with 32 PE (==128M) size. This is our image to be backed up.
+    lvcreate --extents 32 --name test vg0
+    # Create device manager mappings
+    dmsetup create test-meta --table "0 8192 linear /dev/mapper/vg0-era 0"
+    dmsetup create test-era --table "0 262144 era /dev/mapper/test-meta /dev/mapper/vg0-test 4096"
+    dmsetup create test-access --table "0 8192 linear /dev/mapper/test-meta 0"
+    # Create a file system (Note: calls blkdiscard ioctl)
+    mkfs.ext4 /dev/mapper/test-era
+    # Take a metadata snapshot, advances era 1 to era 2
+    dmsetup message test-era 0 take_metadata_snap
+    # Query changes during "mkfs"
+    era_invalidate --written-since 1 /dev/mapper/test-access
+    <blocks>
+      <block block="0"/>
+      <range begin="3" end = "5"/>
+      <block block="12"/>
+      <block block="20"/>
+      <range begin="24" end = "27"/>
+      <block block="28"/>
+      <block block="36"/>
+      <block block="63"/>
+    </blocks>
+
+The example above uses era blocks with 4096 sectors (2M) to differentiate from PE size which is 8192 sectors (4M). If you feed the resulting XML into blocksync-fast, the first 2M of /dev/mapper/test-era are checksummed, then 4M skipped, then 4M checksummed, then 14M skipped, and so on...
+
+If you followed the above example, you may want to
+
+    dmsetup remove test-access
+    dmsetup remove test-era
+    dmsetup remove test-meta
+    lvremove vg0/test
+    lvremove vg0/era
 
 ## Limitations and Notes
 

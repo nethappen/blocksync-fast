@@ -19,12 +19,12 @@
 #include "globals.h"
 #include <math.h>		// ceil
 
-long parse_units(char *size)
+off_t parse_units(char *size)
 {
-    long number;
+    off_t number;
     char *str;
 
-    number = strtoul(size, &str, 10);
+    number = strtoull(size, &str, 10);
 
     if (strcasecmp(str, "k") == 0 || strcasecmp(str, "kib") == 0)
         number *= 1024;
@@ -42,7 +42,7 @@ long parse_units(char *size)
     return number;
 }
 
-char *format_units(long long int size, bool show_bytes)
+char *format_units(off_t size, bool show_bytes)
 {
     char *number_str = malloc(80);
 
@@ -57,7 +57,7 @@ char *format_units(long long int size, bool show_bytes)
     else
     {
         if (show_bytes)
-            sprintf(number_str, ("%llu bytes"), size);
+            sprintf(number_str, ("%llu bytes"), (unsigned long long)size);
         else
             sprintf(number_str, ("%.0f B"), (double)size);
 
@@ -68,7 +68,7 @@ char *format_units(long long int size, bool show_bytes)
     {
         char *number_str2 = malloc(80);
         memcpy(number_str2, number_str, 80);
-        sprintf(number_str, ("%s, %llu bytes"), number_str2, size);
+        sprintf(number_str, ("%s, %llu bytes"), number_str2, (unsigned long long)size);
     }
 
     return number_str;
