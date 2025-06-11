@@ -19,8 +19,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-long parse_units(char *size);
-char *format_units(long long int size, bool show_bytes);
+off_t parse_units(char *size);
+char *format_units(off_t size, bool show_bytes);
 off_t p2r(off_t x);
 
 #endif

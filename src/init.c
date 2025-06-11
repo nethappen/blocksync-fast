@@ -120,7 +120,7 @@ void init_src_device(void)
                     src.path, format_units(src.data_size, true));
     }
 
-    if (src.data_size < 1)
+    if (src.data_size == (off_t)-1)
     {
         fprintf(stderr, "%s: source device is empty\n", process_name);
         cleanup(EXIT_FAILURE);
@@ -529,7 +529,7 @@ void init_src_delta(void)
         fprintf(flag.prst, "Data to apply-delta is read from STDIN\n");
         delta.fd = STDIN_FILENO;
         delta.open_mode = PIPE;
-        delta.data_size = SIZE_MAX;
+        delta.data_size = LLONG_MAX;
     }
 
     delta.open_mode |= READ;

@@ -32,8 +32,7 @@ void print_help(void)
 
 	fprintf(flag.prst, "\n");
 
-	fprintf(flag.prst, "Usage:\n",
-			process_name);
+	fprintf(flag.prst, "Usage:\n");
 
 	fprintf(flag.prst, " %s [options]\n",
 			process_name);
@@ -252,9 +251,9 @@ void print_summary(void)
 	if (flag.progress > 0)
 		fprintf(flag.prst, "\n");
 
-	fprintf(flag.prst, "%s: %zu/%zu blocks, %zu/%zu bytes.\n",
+	fprintf(flag.prst, "%s: %zu/%zu blocks, %zu/%llu bytes.\n",
 			flag.oper_mode == MAKEDIGEST ? (IS_MODE(digest.open_mode, READ) ? "Updated" : "Created") : (IS_MODE(dst.open_mode, READ) ? "Updated" : "Copied"),
-			prog.wri_blocks, param.num_blocks, prog.wri_bytes, param.data_size);
+			prog.wri_blocks, param.num_blocks, prog.wri_bytes, (unsigned long long)param.data_size);
 
 	if ( flag.oper_mode == BLOCKSYNC && IS_MODE(src.open_mode, PIPE_R) ) {
 	
@@ -747,11 +746,11 @@ void make_digest(void)
 
 void init_params(void)
 {
-	if (flag.oper_mode == MAKEDELTA && delta.path == NULL || flag.oper_mode == MAKEDIGEST && digest.path == NULL)
+	if ((flag.oper_mode == MAKEDELTA && delta.path == NULL) || (flag.oper_mode == MAKEDIGEST && digest.path == NULL))
 		flag.prst = stderr;
 
 	if (flag.silent)
-		freopen("/dev/null", "w", flag.prst) != NULL;
+		freopen("/dev/null", "w", flag.prst);
 
 	init_map_methods();
 
@@ -781,7 +780,7 @@ void init_params(void)
 		if (digest.path != NULL)
 			init_digest_file();
 		else
-			fprintf(flag.prst, "Warning: works without digest file.\n", process_name);
+			fprintf(flag.prst, "Warning: %s works without digest file.\n", process_name);
 
 		if (IS_MODE(digest.open_mode, READ))
 			dst.open_mode ^= READ;
@@ -816,7 +815,7 @@ void init_params(void)
 		}
 
 		if (digest.path == NULL)
-			fprintf(flag.prst, "Warning: works without digest file.\n", process_name);
+			fprintf(flag.prst, "Warning: %s works without digest file.\n", process_name);
 
 		if (param.hash_algo != NULL)
 			check_algo_param();
@@ -887,7 +886,7 @@ void init_params(void)
 		dst.buf_size = (dst.data_size < dst.max_buf_size ? dst.data_size : dst.max_buf_size);
 	}
 
-	bool buf_adj_delta = false;
+	__attribute__((unused))bool buf_adj_delta = false;
 
 	if (flag.oper_mode == MAKEDELTA)
 	{
@@ -924,7 +923,7 @@ void init_params(void)
 		{
 			digest.block_size = param.algo.size;
 			digest.max_buf_size = (src.max_buf_size / src.block_size) * digest.block_size;
-			bool buf_adj_digest = adjust_buffer(&digest.max_buf_size, digest.block_size);
+			__attribute__((unused))bool buf_adj_digest = adjust_buffer(&digest.max_buf_size, digest.block_size);
 
 			if (IS_MODE(digest.open_mode, DIRECT) || IS_MODE(digest.open_mode, PIPE))
 				digest.buf_data = realloc(digest.buf_data, digest.max_buf_size);
@@ -933,8 +932,8 @@ void init_params(void)
 		}
 
 		if (param.block_size < src.stat.st_blksize)
-			fprintf(flag.prst, "Warning: given block size is smaller than the block size of the source device, which is %zu bytes\n",
-					src.stat.st_blksize);
+			fprintf(flag.prst, "Warning: given block size is smaller than the block size of the source device, which is %llu bytes\n",
+					(unsigned long long)src.stat.st_blksize);
 	}
 
 	if (flag.oper_mode == BLOCKSYNC || flag.oper_mode == APPLYDELTA)
@@ -954,14 +953,14 @@ void init_params(void)
 				param.algo.symbol, param.algo.size);
 
 		if (param.algo.size > param.block_size)
-			fprintf(flag.prst, "Warning: block size '%ld' is smaller than hash '%s' size\n", param.block_size, param.algo.symbol);
+			fprintf(flag.prst, "Warning: block size '%zu' is smaller than hash '%s' size\n", param.block_size, param.algo.symbol);
 	}
 
-	if (param.data_size > (size_t)(1UL * 1024 * 1024 * 1024 * 1024)) {
+	if (param.data_size > (off_t)(1ULL * 1024 * 1024 * 1024 * 1024)) {
 		param.pro_prec = 2;
 		param.pro_fact = 100;
 	}
-	else if (param.data_size > (size_t)(100UL * 1024 * 1024 * 1024)) {
+	else if (param.data_size > (off_t)(100ULL * 1024 * 1024 * 1024)) {
 		param.pro_prec = 1;
 		param.pro_fact = 10;
 	}

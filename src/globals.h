@@ -104,7 +104,7 @@ extern struct dev
 	int fd;
 	struct stat stat;
 	off_t abs_off, buf_off, rel_off, mov_off;
-	size_t data_size;
+	off_t data_size;
 	size_t block_size;
 	size_t buf_size;
 	size_t max_buf_size;
@@ -177,7 +177,7 @@ extern struct param
 	size_t max_buf_size;
 	size_t num_blocks;
 	char *h_data_size;
-	size_t data_size;
+	off_t data_size;
 	int pro_prec;
 	int pro_fact;
 	char pro_form[20];
