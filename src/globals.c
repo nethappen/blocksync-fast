@@ -142,7 +142,7 @@ void map_buffer(struct dev *dev)
 
 			if (rbytes < 0)
 			{
-				fprintf(stderr, "%s: error while reading from stdin : %s\n", process_name, dev->path, strerror(errno));
+				fprintf(stderr, "%s: error while reading from stdin : %s (%s)\n", process_name, dev->path, strerror(errno));
 				cleanup(EXIT_FAILURE);
 			}
 

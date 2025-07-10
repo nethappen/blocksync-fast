@@ -32,7 +32,7 @@ void print_help(void)
 
 	fprintf(flag.prst, "\n");
 
-	fprintf(flag.prst, "Usage:\n",
+	fprintf(flag.prst, "%s: Usage:\n",
 			process_name);
 
 	fprintf(flag.prst, " %s [options]\n",
@@ -781,7 +781,7 @@ void init_params(void)
 		if (digest.path != NULL)
 			init_digest_file();
 		else
-			fprintf(flag.prst, "Warning: works without digest file.\n", process_name);
+			fprintf(flag.prst, "%s: Warning: works without digest file.\n", process_name);
 
 		if (IS_MODE(digest.open_mode, READ))
 			dst.open_mode ^= READ;
@@ -816,7 +816,7 @@ void init_params(void)
 		}
 
 		if (digest.path == NULL)
-			fprintf(flag.prst, "Warning: works without digest file.\n", process_name);
+			fprintf(flag.prst, "Warning: %s works without digest file.\n", process_name);
 
 		if (param.hash_algo != NULL)
 			check_algo_param();
