@@ -1,0 +1,135 @@
+# Build and release workflow for blocksync-fast.
+# Builds and uploads GitHub releases (upon tag push) and assets every push.
+#
+# Testable locally with eg 'act -W .github/workflows/build-and-release.yml' using [1]
+# [1] https://github.com/nektos/act
+
+
+name: Build and Release
+
+on:
+  push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Update package lists
+      run: sudo apt-get update
+
+    - name: Install build essentials
+      run: |
+        sudo apt-get install -y --no-install-recommends \
+          build-essential \
+          autoconf \
+          automake \
+          libtool \
+          pkg-config
+
+    - name: Install optional xxhash dependencies
+      run: |
+        sudo apt-get install -y --no-install-recommends \
+          libxxhash-dev \
+          xxhash
+
+    - name: Install optional libgcrypt dependencies  
+      run: |
+        sudo apt-get install -y --no-install-recommends \
+          libgcrypt20-dev \
+          libgcrypt20
+
+    - name: Install DEB packaging dependencies
+      run: |
+        sudo apt-get install -y --no-install-recommends \
+          devscripts \
+          debhelper \
+          dh-autoreconf \
+          equivs \
+          dpkg-dev
+
+    - name: Create release directory
+      run: |
+        mkdir -p release
+ 
+    - name: Generate build files
+      run: |
+        autoreconf --install
+        ./configure
+    
+    - name: Build binary
+      run: |
+        make
+        cp src/blocksync-fast release/${{ steps.version.outputs.target_filename }}
+        chmod +x release/${{ steps.version.outputs.target_filename }}
+    
+    - name: Build deb package
+      run: |
+        # Install build dependencies
+        mk-build-deps
+        sudo apt install ./blocksync-fast-build-deps_*.deb
+        
+        # Build with fakeroot to avoid permission issues
+        sudo debuild -us -uc -b
+        
+        # Copy the deb package to release directory
+        cp ../blocksync-fast_*.deb release/ || true
+    
+    - name: Get version and architecture info
+      id: version
+      run: |
+        # Get git describe for version info
+        GIT_DESCRIBE=$(git describe --tags --long --dirty)
+        echo "git_describe=$GIT_DESCRIBE" >> $GITHUB_OUTPUT
+        
+        # Get commit hash
+        COMMIT_HASH=$(git rev-parse HEAD)
+        echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+        
+        # Get system architecture
+        ARCH=$(uname -m)
+        echo "arch=$ARCH" >> $GITHUB_OUTPUT
+        
+        # Get OS info
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        echo "os=$OS" >> $GITHUB_OUTPUT
+        
+        # Create target filename
+        TARGET_FILENAME="blocksync-fast-$OS-$ARCH"
+        echo "target_filename=$TARGET_FILENAME" >> $GITHUB_OUTPUT
+    
+    - name: Create release (on tag push)
+      uses: softprops/action-gh-release@v1
+      # Upload a release only if the push is a tag
+      if: github.event_name == 'push' && contains(github.ref, 'refs/tags/v*')
+      with:
+        tag_name: ${{ steps.version.outputs.git_describe }}
+        name: Release ${{ steps.version.outputs.git_describe }}
+        body: |
+          ## blocksync-fast ${{ steps.version.outputs.git_describe }}
+          
+          **Git Info:** ${{ steps.version.outputs.git_describe }}
+          **Commit:** ${{ steps.version.outputs.commit_hash }}
+        files: |
+          release/${{ steps.version.outputs.target_filename }}
+          release/blocksync-fast_*.deb
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+
+    # Upload GitHub Action workflow *artifacts*. Note "artifacts" are a different concept to GitHub release assets. The former is available on each
+    # workflow run. The latter is associated with only a pushed tag.
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: blocksync-fast-${{ steps.version.outputs.git_describe }}-${{ steps.version.outputs.target_filename }}
+        path: |
+          release/${{ steps.version.outputs.target_filename }}
+          release/blocksync-fast_*.deb
+        retention-days: 30
+ 
