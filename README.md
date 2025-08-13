@@ -1,6 +1,8 @@
 # Blocksync-fast
 ![blocksync-fast](https://raw.githubusercontent.com/nethappen/blocksync-fast/main/assets/images/blocksync-fast.png)
 
+[![Build Status](/actions/workflows/build-and-release.yml/badge.svg?event=push&branch=master)](/actions)
+
 Blocksync-fast is a program written in C that clones and synchronizes any block devices (entire disks, partitions) or files (disk images) using fast and efficient methods. It uses buffered reads and writes to combine adjacent blocks together reducing the number of I/O operations. At synchronization process program overwrites only changed blocks which reduces data transfer and maintains blocks deduplication in Copy-on-write file systems.
 
 The digest file can be used to store checksums of blocks from a previous sync to avoid read operations from the target disk. This optimization is especially desirable when synchronizing fast NVM drives with slower HDD drives or when transferring data over the network. The program can also creates delta file that stores only differing blocks which can be applied to the destination.
