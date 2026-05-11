@@ -60,7 +60,30 @@ jobs:
       run: |
         autoreconf --install
         ./configure
-    
+
+    - name: Get version and architecture info and set env variables
+      id: version
+      run: |
+        # Get git describe for version info
+        GIT_DESCRIBE=$(git describe --tags --long --dirty)
+        echo "git_describe=$GIT_DESCRIBE" >> $GITHUB_OUTPUT
+
+        # Get commit hash
+        COMMIT_HASH=$(git rev-parse HEAD)
+        echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+
+        # Get system architecture
+        ARCH=$(uname -m)
+        echo "arch=$ARCH" >> $GITHUB_OUTPUT
+
+        # Get OS info
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        echo "os=$OS" >> $GITHUB_OUTPUT
+
+        # Create target filename
+        TARGET_FILENAME="blocksync-fast-$OS-$ARCH"
+        echo "target_filename=$TARGET_FILENAME" >> $GITHUB_OUTPUT
+
     - name: Build binary
       run: |
         make
@@ -79,33 +102,11 @@ jobs:
         # Copy the deb package to release directory
         cp ../blocksync-fast_*.deb release/ || true
     
-    - name: Get version and architecture info
-      id: version
-      run: |
-        # Get git describe for version info
-        GIT_DESCRIBE=$(git describe --tags --long --dirty)
-        echo "git_describe=$GIT_DESCRIBE" >> $GITHUB_OUTPUT
-        
-        # Get commit hash
-        COMMIT_HASH=$(git rev-parse HEAD)
-        echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
-        
-        # Get system architecture
-        ARCH=$(uname -m)
-        echo "arch=$ARCH" >> $GITHUB_OUTPUT
-        
-        # Get OS info
-        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-        echo "os=$OS" >> $GITHUB_OUTPUT
-        
-        # Create target filename
-        TARGET_FILENAME="blocksync-fast-$OS-$ARCH"
-        echo "target_filename=$TARGET_FILENAME" >> $GITHUB_OUTPUT
     
     - name: Create release (on tag push)
       uses: softprops/action-gh-release@v1
       # Upload a release only if the push is a tag
-      if: github.event_name == 'push' && contains(github.ref, 'refs/tags/v*')
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
       with:
         tag_name: ${{ steps.version.outputs.git_describe }}
         name: Release ${{ steps.version.outputs.git_describe }}
@@ -126,10 +127,12 @@ jobs:
     # workflow run. The latter is associated with only a pushed tag.
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
+      # If there's an error due to eg, the user's artifact storage quota limits, that's not a big issue.
+      continue-on-error: true
       with:
         name: blocksync-fast-${{ steps.version.outputs.git_describe }}-${{ steps.version.outputs.target_filename }}
         path: |
           release/${{ steps.version.outputs.target_filename }}
           release/blocksync-fast_*.deb
-        retention-days: 30
+        retention-days: 5
  
