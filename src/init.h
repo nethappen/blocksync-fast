@@ -23,6 +23,8 @@ void init_map_methods(void);
 void check_algo_param(void);
 void check_block_size(void);
 void init_src_device(void);
+extern int assume_yes, preallocate;
+void confirm_target_shrink(void);
 void init_dst_device(void);
 void init_digest_file(void);
 void init_dst_delta(void);

@@ -31,6 +31,7 @@ AC_SEARCH_LIBS([floor], [m])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdint.h sys/param.h unistd.h])
+AC_CHECK_HEADERS([linux/aio_abi.h], [], [AC_MSG_ERROR([Linux native AIO headers are required])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -67,7 +68,7 @@ if test "x$with_xxhash" != "xno"; then
     AC_DEFINE([HAVE_XXHASH], [1], [have xxhash])
     AC_MSG_NOTICE([xxhash fast hashing algorithm library found >= $XXHASH_MIN_VERSION])
     XXHASH_CFLAGS="-DXXH_INLINE_ALL"
-    AX_CHECK_X86_FEATURES
+    m4_ifdef([AX_CHECK_X86_FEATURES], [AX_CHECK_X86_FEATURES])
   
   elif test "x$with_xxhash" = "xyes"; then
 	  AC_MSG_ERROR([xxhash >= $XXHASH_MIN_VERSION not found, install it or build with --with-xxhash=no])

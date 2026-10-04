@@ -50,3 +50,33 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Build binary
+src/blocksync-fast
+
+# Autotools generated files
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.*
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
+m4/
+missing
+stamp-h?
+.deps/
+.dirstamp
+.libs/
+*.l[ao]
+*~
+
+# Autotools compiler helper
+/compile
+
+# Disposable validation executables and fixtures
+/.test-build/
+/tests/__pycache__/

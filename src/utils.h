@@ -20,6 +20,7 @@
 #define UTILS_H
 
 long parse_units(char *size);
+/* Result is valid until eight further calls in this thread. */
 char *format_units(long long int size, bool show_bytes);
 off_t p2r(off_t x);
 

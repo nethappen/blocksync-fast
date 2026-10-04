@@ -1,0 +1,1322 @@
+[
+  {
+    "mode": "original",
+    "workload": "unchanged",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.37582444096915424,
+    "user_s": 0.063701,
+    "system_s": 0.29561499999999996,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 72,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        1073778688,
+        0
+      ],
+      "nvme2n1": [
+        0,
+        0
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "new-sequential",
+    "workload": "unchanged",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.4520144999260083,
+    "user_s": 0.07875299999999999,
+    "system_s": 0.299262,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 400,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        1073827840,
+        1179648
+      ],
+      "nvme2n1": [
+        73728,
+        1179648
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-1",
+    "workload": "unchanged",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.37641957495361567,
+    "user_s": 0.08193,
+    "system_s": 0.120303,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2112584,
+    "write_blocks_512": 400,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        28672,
+        1097728
+      ],
+      "nvme2n1": [
+        1081708544,
+        1097728
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-4",
+    "workload": "unchanged",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.25417687196750194,
+    "user_s": 0.074099,
+    "system_s": 0.153491,
+    "peak_rss_kib": 18284,
+    "read_blocks_512": 2131536,
+    "write_blocks_512": 464,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        545550336,
+        225280
+      ],
+      "nvme2n1": [
+        545796096,
+        225280
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-8",
+    "workload": "unchanged",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.2601880499860272,
+    "user_s": 0.099836,
+    "system_s": 0.16183999999999998,
+    "peak_rss_kib": 35032,
+    "read_blocks_512": 2166344,
+    "write_blocks_512": 400,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        554606592,
+        552960
+      ],
+      "nvme2n1": [
+        554713088,
+        552960
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "original",
+    "workload": "unchanged",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.3868621160509065,
+    "user_s": 0.07846,
+    "system_s": 0.28366399999999997,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 8,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        0,
+        122880
+      ],
+      "nvme2n1": [
+        1073782784,
+        122880
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "new-sequential",
+    "workload": "unchanged",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.43039732705801725,
+    "user_s": 0.09629599999999999,
+    "system_s": 0.27697499999999997,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 496,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        1073836032,
+        2199552
+      ],
+      "nvme2n1": [
+        155648,
+        2199552
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-1",
+    "workload": "unchanged",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.24346064403653145,
+    "user_s": 0.06941499999999999,
+    "system_s": 0.11047699999999999,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2112584,
+    "write_blocks_512": 400,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        1081647104,
+        946176
+      ],
+      "nvme2n1": [
+        40960,
+        946176
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-4",
+    "workload": "unchanged",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.2581032150192186,
+    "user_s": 0.093404,
+    "system_s": 0.11838499999999999,
+    "peak_rss_kib": 18424,
+    "read_blocks_512": 2131536,
+    "write_blocks_512": 432,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        545550336,
+        598016
+      ],
+      "nvme2n1": [
+        545832960,
+        598016
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-8",
+    "workload": "unchanged",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.2511236439459026,
+    "user_s": 0.098032,
+    "system_s": 0.153306,
+    "peak_rss_kib": 35060,
+    "read_blocks_512": 2166344,
+    "write_blocks_512": 752,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        554450944,
+        393216
+      ],
+      "nvme2n1": [
+        554721280,
+        393216
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "original",
+    "workload": "unchanged",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.3988063570577651,
+    "user_s": 0.06378299999999999,
+    "system_s": 0.318918,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 72,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        0,
+        450560
+      ],
+      "nvme2n1": [
+        1073823744,
+        450560
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "new-sequential",
+    "workload": "unchanged",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.43853584094904363,
+    "user_s": 0.092503,
+    "system_s": 0.28665799999999997,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 496,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        1073778688,
+        1175552
+      ],
+      "nvme2n1": [
+        253952,
+        1175552
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-1",
+    "workload": "unchanged",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.36258136597462,
+    "user_s": 0.07128999999999999,
+    "system_s": 0.12605,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2112584,
+    "write_blocks_512": 400,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        36864,
+        1007616
+      ],
+      "nvme2n1": [
+        1081716736,
+        1007616
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-4",
+    "workload": "unchanged",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.23071451694704592,
+    "user_s": 0.072807,
+    "system_s": 0.119683,
+    "peak_rss_kib": 18492,
+    "read_blocks_512": 2132048,
+    "write_blocks_512": 432,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        546062336,
+        233472
+      ],
+      "nvme2n1": [
+        545546240,
+        233472
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "queued-8",
+    "workload": "unchanged",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 0,
+    "elapsed_s": 0.24952300009317696,
+    "user_s": 0.10382699999999999,
+    "system_s": 0.16036699999999998,
+    "peak_rss_kib": 35064,
+    "read_blocks_512": 2166856,
+    "write_blocks_512": 752,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        554455040,
+        438272
+      ],
+      "nvme2n1": [
+        554975232,
+        438272
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 0/262144 blocks, 0/1073741824 bytes."
+  },
+  {
+    "mode": "original",
+    "workload": "scattered",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.38256524596363306,
+    "user_s": 0.051102999999999996,
+    "system_s": 0.307641,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 4096,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        0,
+        110592
+      ],
+      "nvme2n1": [
+        1073778688,
+        110592
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "new-sequential",
+    "workload": "scattered",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.4755791010102257,
+    "user_s": 0.099648,
+    "system_s": 0.2919,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 4808,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        139264,
+        2883584
+      ],
+      "nvme2n1": [
+        1073950720,
+        2883584
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-1",
+    "workload": "scattered",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.23144231003243476,
+    "user_s": 0.092066,
+    "system_s": 0.093067,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2112584,
+    "write_blocks_512": 4840,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        1081638912,
+        1462272
+      ],
+      "nvme2n1": [
+        4096,
+        1462272
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-4",
+    "workload": "scattered",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.25719018396921456,
+    "user_s": 0.08850999999999999,
+    "system_s": 0.152195,
+    "peak_rss_kib": 18300,
+    "read_blocks_512": 2131536,
+    "write_blocks_512": 4968,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        545808384,
+        2199552
+      ],
+      "nvme2n1": [
+        545619968,
+        2199552
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-8",
+    "workload": "scattered",
+    "repetition": 0,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.26456034800503403,
+    "user_s": 0.092709,
+    "system_s": 0.156576,
+    "peak_rss_kib": 34808,
+    "read_blocks_512": 2166864,
+    "write_blocks_512": 4872,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        554987520,
+        1855488
+      ],
+      "nvme2n1": [
+        554491904,
+        1855488
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "original",
+    "workload": "scattered",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.39660300000105053,
+    "user_s": 0.07496599999999999,
+    "system_s": 0.30380999999999997,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 4096,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        1073778688,
+        77824
+      ],
+      "nvme2n1": [
+        0,
+        77824
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "new-sequential",
+    "workload": "scattered",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.520324983051978,
+    "user_s": 0.088498,
+    "system_s": 0.335893,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 4776,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        299008,
+        4476928
+      ],
+      "nvme2n1": [
+        1074049024,
+        4476928
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-1",
+    "workload": "scattered",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.3765098409494385,
+    "user_s": 0.07229,
+    "system_s": 0.112772,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2112584,
+    "write_blocks_512": 4872,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        4096,
+        1572864
+      ],
+      "nvme2n1": [
+        1081638912,
+        1572864
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-4",
+    "workload": "scattered",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.2598066410282627,
+    "user_s": 0.075061,
+    "system_s": 0.136936,
+    "peak_rss_kib": 18424,
+    "read_blocks_512": 2131536,
+    "write_blocks_512": 5000,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        545558528,
+        1699840
+      ],
+      "nvme2n1": [
+        545808384,
+        1699840
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-8",
+    "workload": "scattered",
+    "repetition": 1,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.25825341208837926,
+    "user_s": 0.089319,
+    "system_s": 0.159132,
+    "peak_rss_kib": 35068,
+    "read_blocks_512": 2173192,
+    "write_blocks_512": 4872,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        554717184,
+        1765376
+      ],
+      "nvme2n1": [
+        557985792,
+        1765376
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "original",
+    "workload": "scattered",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.3996263580629602,
+    "user_s": 0.076682,
+    "system_s": 0.292415,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 4096,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        8192,
+        618496
+      ],
+      "nvme2n1": [
+        1073836032,
+        618496
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "new-sequential",
+    "workload": "scattered",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.48164897703099996,
+    "user_s": 0.0885,
+    "system_s": 0.31779599999999997,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2097224,
+    "write_blocks_512": 4904,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        200704,
+        2473984
+      ],
+      "nvme2n1": [
+        1073836032,
+        2473984
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-1",
+    "workload": "scattered",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.22910443402361125,
+    "user_s": 0.068433,
+    "system_s": 0.092281,
+    "peak_rss_kib": 15040,
+    "read_blocks_512": 2112584,
+    "write_blocks_512": 5064,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        1081647104,
+        1802240
+      ],
+      "nvme2n1": [
+        24576,
+        1802240
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-4",
+    "workload": "scattered",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.25560113007668406,
+    "user_s": 0.075137,
+    "system_s": 0.130983,
+    "peak_rss_kib": 18412,
+    "read_blocks_512": 2131536,
+    "write_blocks_512": 4840,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        545550336,
+        1503232
+      ],
+      "nvme2n1": [
+        545800192,
+        1503232
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  },
+  {
+    "mode": "queued-8",
+    "workload": "scattered",
+    "repetition": 2,
+    "size": 1073741824,
+    "changed_bytes": 1048576,
+    "elapsed_s": 0.25382627290673554,
+    "user_s": 0.084115,
+    "system_s": 0.16536299999999998,
+    "peak_rss_kib": 34936,
+    "read_blocks_512": 2166344,
+    "write_blocks_512": 4904,
+    "disk_traffic_bytes": {
+      "nvme0n1": [
+        0,
+        0
+      ],
+      "nvme1n1": [
+        554455040,
+        1495040
+      ],
+      "nvme2n1": [
+        554713088,
+        1495040
+      ],
+      "sda": [
+        0,
+        0
+      ],
+      "sdb": [
+        0,
+        0
+      ],
+      "zram0": [
+        0,
+        0
+      ],
+      "sdc": [
+        0,
+        0
+      ]
+    },
+    "summary": "Copied: 256/262144 blocks, 1048576/1073741824 bytes."
+  }
+]

@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Added
+- DM-era change-list filtering for digest and delta generation, with strict XML
+  validation, compatible-baseline checks, and interrupted-update detection.
+- Opt-in queued Linux native AIO source reads with configurable reader count,
+  queue depth and read size, plus optional direct source reads.
+- Durable incomplete-sync markers and automatic recovery by destination comparison.
+- Optional target preallocation with `--preallocate`, and `-y`/`--yes` to approve
+  regular-file target shrinking without prompting.
+- Disposable correctness, failure, recovery, resizing and performance fixtures.
+
+### Changed
+- Regular-file targets grow automatically; shrinking requires confirmation even
+  with `--force`. Smaller block devices are rejected, while larger devices require
+  `--force` to sync only the source-sized prefix.
+- Destination inode locks exclude concurrent syncs using different digest paths.
+- Generated Autotools files are no longer tracked; fresh checkouts require
+  `autoreconf --install` before configuration.
+- Workflow artifacts are retained for five days, and upload failures are nonfatal.
+
+### Fixed
+- `PAGE_SIZE` macro collisions, compiler warnings and digest-generation help usage.
+- Complete streamed delta writes after short writes or interrupted system calls.
+- Short I/O handling, final changed-run flush offsets, unexpected destination EOF,
+  malformed digest validation, and non-mutating block-sync dry runs.
+- Link detection for `libm`, build status badge, binary artifact naming, and
+  tag-triggered release uploads.
+
 ## [1.0.7] - 2025-05-03
 ### Fixed
 - Fixed compilation issues when using GCC 15.

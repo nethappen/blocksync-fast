@@ -18,6 +18,10 @@
 
 #include "globals.h"
 #include "init.h"
+#include "queued.h"
+#include "era.h"
+#include "benchmark.h"
+#include "digest_info.h"
 
 void print_version(void)
 {
@@ -39,6 +43,9 @@ void print_help(void)
 			process_name);
 
 	fprintf(flag.prst, " %s -s <src_device> -d <dst_device> [-f <digest_file>] [options]\n",
+			process_name);
+
+	fprintf(flag.prst, " %s -s <src_device> [-f <digest_file>] --make-digest [options]\n",
 			process_name);
 
 	fprintf(flag.prst, " %s -s <src_device> [-f <digest_file>] --make-delta -D <delta_file> [options]\n",
@@ -81,17 +88,28 @@ void print_help(void)
 					   "  Delta file path. If none, data write to stdout or read from stdin\n"
 					   "\n"
 
+					   "-e, --era=PATH\n"
+					   "  Era XML file path. If set, will only process denoted blocks\n"
+					   "  Requires make-digest/make-delta and a complete baseline digest\n"
+					   "  Note: Era XML does not reflect BLKDISCARD changes (trim, mkfs)\n"
+					   "\n"
+
+					   "-E, --era-sectors=N\n"
+					   "  Era block size in sectors (default: 4096)\n"
+					   "\n"
+
 					   "-b, --block-size=N[KMG]\n"
 					   "  Block size in N bytes for writing and checksum calculations\n"
 					   "  (default:4K)\n"
 					   "\n"
 
 					   "-a, --algo=ALGO\n"
-					   "  Cryptographic hash algorithm which is used to compute checksum to compare blocks\n"
+					   "  Cryptographic hash algorithm which is used to compute checksum to compare\n"
+					   "  blocks"
 #ifdef HAVE_XXHASH
-					   "  (default:XXH3LOW)\n"
+					   " (default:XXH3LOW)\n"
 #else
-					   "  (default:CRC32)\n"
+					   " (default:CRC32)\n"
 #endif
 					   "\n"
 
@@ -111,7 +129,11 @@ void print_help(void)
 					   "  Checks delta file, prints info and exit\n"
 					   "\n"
 
-					   "--buffer-size=N[KMG]\n"
+					   "--read-jobs=N --read-depth=N --read-size=N[KMG] --direct-read\n"
+                       "  Bounded Linux AIO reads (opt-in; defaults: 1 job, depth 16, size 256K)\n"
+                       "  Direct reads require alignment; unsupported direct I/O fails cleanly\n"
+                       "\n"
+                       "--buffer-size=N[KMG]\n"
 					   "  Size of the buffer in N bytes for processing data per device\n"
 					   "  (default:2M)\n"
 					   "\n"
@@ -141,15 +163,22 @@ void print_help(void)
 					   "\n"
 
 					   "--dont-write-target\n"
-					   "  Perform run with no updates only to target device\n"
+					   "  Suppress target updates; block-sync also suppresses digest updates\n"
 					   "\n"
 
 					   "--dont-write-digest\n"
 					   "  Perform run with no updates only to digest file\n"
 					   "\n"
 
-					   "--force\n"
+					   "--preallocate\n"
+                       "  Reserve added target space before growth (disabled by default)\n"
+                       "\n"
+                       "-y, --yes\n"
+                       "  Accept regular-file target shrinking without prompting\n"
+                       "\n"
+                       "--force\n"
 					   "  Allows to overwrite files and override parameters which was generated before\n"
+					   "  Does not approve target shrinking or enlarge smaller block devices\n"
 					   "\n"
 
 					   "--silent\n"
@@ -164,10 +193,13 @@ void print_help(void)
 					   "  Show version\n"
 					   "\n"
 
-					   "This program compares and synchronizes block devices using fast and efficient methods.\n"
-					   "Digest can be used to store checksums of data blocks from previous synchronization\n"
-					   "to speed up synchronize process and avoid read operations from target block device.\n"
-					   "Program can also create delta files that contains differences between block devices.\n");
+					   "This program compares and synchronizes block devices using fast and\n"
+					   "efficient methods.  Digest can be used to store checksums of data blocks\n"
+					   "from previous synchronization to speed up synchronize process and avoid read\n"
+					   "operations from target block device.  Program can also create delta files\n"
+					   "that contains differences between block devices.\n"
+
+);
 }
 
 void print_algos(void)
@@ -273,7 +305,7 @@ void print_summary(void)
 
 void parse_options(int argc, char **argv)
 {
-	static const char *short_options = "hVs:d:S:f:D:b:a:l";
+	static const char *short_options = "hVys:d:S:f:D:b:a:le:E:";
 	static struct option long_options[] = {
 		{"help", no_argument, 0, 'h'},
 		{"version", no_argument, 0, 'V'},
@@ -283,6 +315,8 @@ void parse_options(int argc, char **argv)
 		{"show-progress-detail", no_argument, &flag.progress, 2},
 		{"silent", no_argument, &flag.silent, 1},
 		{"force", no_argument, &flag.force, 1},
+        {"yes", no_argument, 0, 'y'},
+        {"preallocate", no_argument, 0, 1006},
 		{"mmap", no_argument, &flag.mmap, 1},
 		{"no-compare", no_argument, &flag.no_compare, 1},
 		{"sync-writes", no_argument, &flag.write_sync, 1},
@@ -294,7 +328,13 @@ void parse_options(int argc, char **argv)
 		{"size", required_argument,	0, 'S'},
 		{"digest", required_argument, 0, 'f'},
 		{"delta", required_argument, 0, 'D'},
+		{"era", required_argument, 0, 'e'},
+		{"era-sectors", required_argument, 0, 'E'},
 		{"buffer-size", required_argument, 0, 1001},
+        {"read-jobs", required_argument, 0, 1002},
+        {"read-depth", required_argument, 0, 1003},
+        {"read-size", required_argument, 0, 1004},
+        {"direct-read", no_argument, 0, 1005},
 		{"block-size", required_argument, 0, 'b'},
 		{"algo", required_argument, 0, 'a'},
 		{"list-algos", no_argument, 0, 'l'},
@@ -319,6 +359,7 @@ void parse_options(int argc, char **argv)
 
 		switch (c)
 		{
+        case 'y': assume_yes = 1; break;
 		case 's':
 			src.path = optarg;
 			break;
@@ -342,9 +383,28 @@ void parse_options(int argc, char **argv)
 		case 'a':
 			param.hash_algo = optarg;
 			break;
+		case 'e':
+			param.era = optarg;
+			break;
+		case 'E':
+			era_set_sectors(optarg);
+			break;
 		case 1001:
 			param.max_buf_size = parse_units(optarg);
 			break;
+        case 1002: {
+            size_t n = read_option_number(optarg, 0);
+            if (n > 64) { fprintf(stderr, "read-jobs exceeds 64\n"); exit(EXIT_FAILURE); }
+            read_jobs = n; read_options = 1; break;
+        }
+        case 1003: {
+            size_t n = read_option_number(optarg, 0);
+            if (n > 256) { fprintf(stderr, "read-depth exceeds 256\n"); exit(EXIT_FAILURE); }
+            read_depth = n; read_options = 1; break;
+        }
+        case 1004: read_size = read_option_number(optarg, 1); read_options = 1; break;
+        case 1005: direct_read = 1; read_options = 1; break;
+        case 1006: preallocate = 1; break;
 		case 'l':
 			print_algos();
 			exit(EXIT_SUCCESS);
@@ -468,8 +528,25 @@ void blocksync(void)
 		oper.num_block++;
 	}
 
-	blocksync_dev_wri_flush(0);
-	digest_wri_flush(0);
+	blocksync_dev_wri_flush(dev_flush);
+	digest_wri_flush(digest_flush);
+}
+
+/* Flush pending digest bytes before changing their absolute positions. */
+static int skip_era_gap(size_t *digest_flush)
+{
+    off_t next = era_next_offset(src.abs_off);
+    if (next == src.abs_off) return 0;
+    digest_wri_flush(*digest_flush);
+    *digest_flush = 0;
+    size_t skipped = next - src.abs_off;
+    src.abs_off = next;
+    src.rel_off += skipped;
+    size_t hash_skipped = (skipped / param.block_size) * param.algo.size;
+    digest.abs_off += hash_skipped;
+    digest.rel_off += hash_skipped;
+    oper.num_block = next / param.block_size;
+    return 1;
 }
 
 void make_delta(void)
@@ -481,6 +558,7 @@ void make_delta(void)
 
 	while (src.abs_off < src.data_size)
 	{
+        if (skip_era_gap(&digest_flush)) continue;
 		if ((src.abs_off + src.block_size) > src.data_size)
 		{
 			src.block_size = src.data_size % src.block_size;
@@ -573,7 +651,7 @@ void make_delta(void)
 		oper.num_block++;
 	}
 
-	digest_wri_flush(0);
+	digest_wri_flush(digest_flush);
 	makedelta_wri_flush_buf();
 
 	delta.data_size = delta.abs_off;
@@ -681,6 +759,7 @@ void make_digest(void)
 
 	while (src.abs_off < src.data_size)
 	{
+        if (skip_era_gap(&digest_flush)) continue;
 		if ((src.abs_off + src.block_size) > src.data_size)
 			src.block_size = src.data_size % src.block_size;
 
@@ -742,17 +821,24 @@ void make_digest(void)
 		oper.num_block++;
 	}
 
-	digest_wri_flush(0);
+	digest_wri_flush(digest_flush);
 }
 
 void init_params(void)
 {
-	if (flag.oper_mode == MAKEDELTA && delta.path == NULL || flag.oper_mode == MAKEDIGEST && digest.path == NULL)
+	if ((flag.oper_mode == MAKEDELTA && delta.path == NULL) || (flag.oper_mode == MAKEDIGEST && digest.path == NULL))
 		flag.prst = stderr;
 
-	if (flag.silent)
-		freopen("/dev/null", "w", flag.prst) != NULL;
+	if (flag.silent && (NULL == freopen("/dev/null", "w", flag.prst)))
+	{
+		fprintf(stderr, "Cannot redirect output to /dev/null\n");
+		cleanup(EXIT_FAILURE);
+	}
 
+    if (flag.oper_mode == BLOCKSYNC && flag.dont_write && flag.mmap) {
+        fprintf(flag.prst, "Dry run uses buffered comparison to avoid writable mappings or resizing\n");
+        flag.mmap = 0;
+    }
 	init_map_methods();
 
 	if (flag.oper_mode == BLOCKSYNC)
@@ -776,6 +862,23 @@ void init_params(void)
 
 		check_block_size();
 		init_src_device();
+        /* Reject all aliases before target sizing or digest header updates. */
+        struct stat target_stat, digest_stat;
+        if (!stat(dst.path, &target_stat) &&
+            ((src.stat.st_dev == target_stat.st_dev && src.stat.st_ino == target_stat.st_ino) ||
+             (S_ISBLK(src.stat.st_mode) && S_ISBLK(target_stat.st_mode) && src.stat.st_rdev == target_stat.st_rdev))) {
+            fprintf(stderr, "%s: source and destination refer to the same inode/device\n", process_name);
+            cleanup(EXIT_FAILURE);
+        }
+        if (digest.path && !stat(digest.path, &digest_stat) &&
+            ((src.stat.st_dev == digest_stat.st_dev && src.stat.st_ino == digest_stat.st_ino) ||
+             (!stat(dst.path, &target_stat) && target_stat.st_dev == digest_stat.st_dev && target_stat.st_ino == digest_stat.st_ino))) {
+            fprintf(stderr, "%s: digest aliases source or destination\n", process_name);
+            cleanup(EXIT_FAILURE);
+        }
+        if (BIT_SET(flag.dont_write, 1)) flag.dont_write = 3;
+        confirm_target_shrink();
+        sync_guard_begin();
 		init_dst_device();
 
 		if (digest.path != NULL)
@@ -887,7 +990,7 @@ void init_params(void)
 		dst.buf_size = (dst.data_size < dst.max_buf_size ? dst.data_size : dst.max_buf_size);
 	}
 
-	bool buf_adj_delta = false;
+	/* Delta buffers are already sized as complete records. */
 
 	if (flag.oper_mode == MAKEDELTA)
 	{
@@ -924,7 +1027,7 @@ void init_params(void)
 		{
 			digest.block_size = param.algo.size;
 			digest.max_buf_size = (src.max_buf_size / src.block_size) * digest.block_size;
-			bool buf_adj_digest = adjust_buffer(&digest.max_buf_size, digest.block_size);
+			adjust_buffer(&digest.max_buf_size, digest.block_size);
 
 			if (IS_MODE(digest.open_mode, DIRECT) || IS_MODE(digest.open_mode, PIPE))
 				digest.buf_data = realloc(digest.buf_data, digest.max_buf_size);
@@ -934,7 +1037,7 @@ void init_params(void)
 
 		if (param.block_size < src.stat.st_blksize)
 			fprintf(flag.prst, "Warning: given block size is smaller than the block size of the source device, which is %zu bytes\n",
-					src.stat.st_blksize);
+					(size_t)src.stat.st_blksize);
 	}
 
 	if (flag.oper_mode == BLOCKSYNC || flag.oper_mode == APPLYDELTA)
@@ -954,14 +1057,14 @@ void init_params(void)
 				param.algo.symbol, param.algo.size);
 
 		if (param.algo.size > param.block_size)
-			fprintf(flag.prst, "Warning: block size '%ld' is smaller than hash '%s' size\n", param.block_size, param.algo.symbol);
+			fprintf(flag.prst, "Warning: block size '%zu' is smaller than hash '%s' size\n", param.block_size, param.algo.symbol);
 	}
 
-	if (param.data_size > (size_t)(1UL * 1024 * 1024 * 1024 * 1024)) {
+	if (param.data_size > (uint64_t)(1ULL * 1024 * 1024 * 1024 * 1024)) {
 		param.pro_prec = 2;
 		param.pro_fact = 100;
 	}
-	else if (param.data_size > (size_t)(100UL * 1024 * 1024 * 1024)) {
+	else if (param.data_size > (uint64_t)(100ULL * 1024 * 1024 * 1024)) {
 		param.pro_prec = 1;
 		param.pro_fact = 10;
 	}
@@ -976,33 +1079,42 @@ int main(int argc, char **argv)
 
 	process_name = basename(argv[0]);
 	parse_options(argc, argv);
+    validate_read_options();
+    era_load();
 
 	switch (flag.oper_mode)
 	{
 	case BENCHMARK:
-		#include "benchmark.h"
 		benchmark_hashes();
 		break;
 
 	case DIGESTINFO:
-		#include "digest_info.h"
 		digest_info();
 		break;
 
 	case DELTAINFO:
-		#include "digest_info.h"
 		delta_info();
 		break;
 
 	case BLOCKSYNC:
 		init_params();
-		blocksync();
+        if (read_options) {
+            if (queued_sync()) cleanup(EXIT_FAILURE);
+        } else blocksync();
+        struct stat source_after;
+        if (fstat(src.fd, &source_after) || (S_ISREG(src.stat.st_mode) &&
+            (source_after.st_size != src.stat.st_size))) {
+            fprintf(stderr, "%s: source size changed during sync\n", process_name);
+            cleanup(EXIT_FAILURE);
+        }
+        sync_guard_finish();
 		print_summary();
 		break;
 
 	case MAKEDELTA:
 		init_params();
 		make_delta();
+        era_finish();
 		print_summary();
 		break;
 
@@ -1015,6 +1127,7 @@ int main(int argc, char **argv)
 	case MAKEDIGEST:
 		init_params();
 		make_digest();
+        era_finish();
 		print_summary();
 		break;
 	}

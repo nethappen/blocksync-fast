@@ -44,7 +44,11 @@ long parse_units(char *size)
 
 char *format_units(long long int size, bool show_bytes)
 {
-    char *number_str = malloc(80);
+    /* Callers use the result immediately, sometimes twice in one printf.
+     * A small ring avoids leaking formatting allocations on every invocation. */
+    static _Thread_local char buffers[8][160];
+    static _Thread_local unsigned next;
+    char *number_str = buffers[next++ % 8];
 
     if (size >= 1099511627776)
         sprintf(number_str, ("%.2f TiB"), ((double)size / 1099511627776));
@@ -57,7 +61,7 @@ char *format_units(long long int size, bool show_bytes)
     else
     {
         if (show_bytes)
-            sprintf(number_str, ("%llu bytes"), size);
+            sprintf(number_str, ("%llu bytes"), (unsigned long long)size);
         else
             sprintf(number_str, ("%.0f B"), (double)size);
 
@@ -66,9 +70,9 @@ char *format_units(long long int size, bool show_bytes)
 
     if (show_bytes)
     {
-        char *number_str2 = malloc(80);
-        memcpy(number_str2, number_str, 80);
-        sprintf(number_str, ("%s, %llu bytes"), number_str2, size);
+        char number_str2[160];
+        snprintf(number_str2, sizeof(number_str2), "%s", number_str);
+        snprintf(number_str, 160, "%.80s, %llu bytes", number_str2, (unsigned long long)size);
     }
 
     return number_str;

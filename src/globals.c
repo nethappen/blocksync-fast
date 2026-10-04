@@ -17,9 +17,10 @@
 */
 
 #include "globals.h"
+#include "era.h"
 
 int PAGE_SIZE = 4096;
-struct dev src, dst, digest, delta = {NULL, -1, {}, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NONE};
+struct dev src = {.fd = -1}, dst = {.fd = -1}, digest = {.fd = -1}, delta = {.fd = -1};
 struct bsf_header digest_header, delta_header = {"", "", 0, 0, 0, NONE};
 struct oper oper = {0, 0, 0, 0, NULL, NULL};
 struct flag flag = {BLOCKSYNC, 0, 0, 0, 0, 0, 0, 0, NULL};
@@ -78,7 +79,7 @@ const struct symbol_value_desc algos[] =
 
 		{"", 0, 0, 0, ""}};
 
-struct param param = {NULL, D_BLOCK_SIZE, D_BUFFER_SIZE, 0, NULL, 0, 0, 1, "", false, NULL, algos[D_ALGO]};
+struct param param = {NULL, D_BLOCK_SIZE, D_BUFFER_SIZE, 0, NULL, 0, 0, 1, "", false, NULL, algos[D_ALGO], NULL, 4096};
 
 void get_ptr(struct dev *dev)
 {
@@ -99,7 +100,10 @@ void map_buffer(struct dev *dev)
 
 	if (IS_MODE(dev->open_mode, MMAP))
 	{
-		int pflags = (IS_MODE(dev->open_mode, READ) ? PROT_READ : 0) | (IS_MODE(dev->open_mode, WRITE) ? PROT_WRITE : 0);
+		int pflags = PROT_READ;
+        if (IS_MODE(dev->open_mode, WRITE) &&
+            !(dev == &dst && BIT_SET(flag.dont_write, 1)) &&
+            !(dev == &digest && BIT_SET(flag.dont_write, 0))) pflags |= PROT_WRITE;
 
 		if (dev->abs_off % PAGE_SIZE > 0)
 		{
@@ -108,6 +112,7 @@ void map_buffer(struct dev *dev)
 		}
 
 		dev->buf_size = (dev->data_size - abs_off) >= dev->max_buf_size ? dev->max_buf_size : (dev->data_size - abs_off);
+		if (!dev->buf_size) { dev->buf_data = NULL; dev->buf_off = abs_off; return; }
 		dev->buf_data = (char *)mmap(NULL, dev->buf_size, pflags, MAP_SHARED, dev->fd, abs_off);
 
 		if (dev->buf_data == MAP_FAILED)
@@ -120,13 +125,21 @@ void map_buffer(struct dev *dev)
 	if (IS_MODE(dev->open_mode, DIRECT))
 		dev->buf_size = (dev->data_size - dev->abs_off) >= dev->max_buf_size ? dev->max_buf_size : (dev->data_size - dev->abs_off);
 
-	if (IS_MODE(dev->open_mode, DIRECT_R))
+	if (dev->fd >= 0 && IS_MODE(dev->open_mode, DIRECT_R))
 	{
-		if (pread(dev->fd, dev->buf_data, dev->buf_size, dev->abs_off) < 0)
-		{
+        size_t done = 0;
+        memset(dev->buf_data, 0, dev->buf_size);
+        size_t present = dev->buf_size;
+        if (dev == &dst && BIT_SET(flag.dont_write, 1) && S_ISREG(dev->stat.st_mode))
+            present = dev->abs_off >= dev->stat.st_size ? 0 : MIN(present, (size_t)(dev->stat.st_size-dev->abs_off));
+        while (done < present) {
+            ssize_t n = pread(dev->fd, dev->buf_data + done, present - done, dev->abs_off + done);
+            if (n < 0 && errno == EINTR) continue;
+            if (n > 0) { done += n; continue; }
+            if (n == 0) errno = EIO;
 			fprintf(stderr, "%s: error while reading from '%s' : %s\n", process_name, dev->path, strerror(errno));
 			cleanup(EXIT_FAILURE);
-		}
+        }
 	}
 
 	if (IS_MODE(dev->open_mode, PIPE_R))
@@ -177,6 +190,30 @@ bool check_buffer_reload(struct dev *dev)
 	return dev_reload;
 }
 
+ssize_t write_at_all(int fd, const void *buf, size_t size, off_t offset)
+{
+    size_t done = 0;
+    while (done < size) {
+        ssize_t n = pwrite(fd, (const char *)buf + done, size - done, offset + done);
+        if (n < 0 && errno == EINTR) continue;
+        if (n <= 0) { if (!n) errno = EIO; return -1; }
+        done += n;
+    }
+    return done;
+}
+
+ssize_t write_stream_all(int fd, const void *buf, size_t size)
+{
+    size_t done = 0;
+    while (done < size) {
+        ssize_t n = write(fd, (const char *)buf + done, size - done);
+        if (n < 0 && errno == EINTR) continue;
+        if (n <= 0) { if (!n) errno = EIO; return -1; }
+        done += n;
+    }
+    return done;
+}
+
 void sync_data(struct dev *dev)
 {
 	if (flag.write_sync == 1 && dev->buf_data != NULL)
@@ -209,7 +246,7 @@ void blocksync_dev_wri_flush(size_t flush)
 				off_t rel_buf_off = src.rel_off - wri_buf_off;
 				off_t abs_buf_off = dst.abs_off - wri_buf_off;
 				const void *ptr = src.buf_data + rel_buf_off;
-				if (pwrite(dst.fd, ptr, oper.dev_wri_buf_size, abs_buf_off) < 0)
+				if (write_at_all(dst.fd, ptr, oper.dev_wri_buf_size, abs_buf_off) < 0)
 				{
 					fprintf(stderr, "%s: error while writing to '%s' : %s\n", process_name, dst.path, strerror(errno));
 					cleanup(EXIT_FAILURE);
@@ -241,7 +278,7 @@ void digest_wri_flush(size_t flush)
 				off_t rel_buf_off = digest.rel_off - wri_buf_off;
 				off_t abs_buf_off = digest.abs_off - wri_buf_off;
 				const void *ptr = oper.hash_buf + (rel_buf_off - digest.mov_off);
-				if (pwrite(digest.fd, ptr, oper.digest_wri_buf_size, abs_buf_off) < 0)
+				if (write_at_all(digest.fd, ptr, oper.digest_wri_buf_size, abs_buf_off) < 0)
 				{
 					fprintf(stderr, "%s: error while writing to '%s' : %s\n", process_name, digest.path, strerror(errno));
 					cleanup(EXIT_FAILURE);
@@ -266,6 +303,8 @@ void digest_wri_flush(size_t flush)
 
 void dev_truncate(struct dev *dev)
 {
+    if ((dev == &dst && BIT_SET(flag.dont_write, 1)) ||
+        (dev == &digest && BIT_SET(flag.dont_write, 0))) return;
 	if (S_ISREG(dev->stat.st_mode) && ftruncate(dev->fd, dev->data_size) < 0)
 	{
 		fprintf(stderr, "%s: error while truncating '%s' : %s\n", process_name, dev->path, strerror(errno));
@@ -451,7 +490,7 @@ void makedelta_wri_flush_buf()
 		{
 			off_t abs_buf_off = delta.abs_off - oper.delta_wri_buf_size;
 
-			if (pwrite(delta.fd, (const void *)oper.delta_buf, oper.delta_wri_buf_size, abs_buf_off) < 0)
+			if (write_at_all(delta.fd, (const void *)oper.delta_buf, oper.delta_wri_buf_size, abs_buf_off) < 0)
 			{
 				fprintf(stderr, "%s: error while writing to '%s' : %s\n", process_name, delta.path, strerror(errno));
 				cleanup(EXIT_FAILURE);
@@ -460,7 +499,7 @@ void makedelta_wri_flush_buf()
 
 		if (IS_MODE(delta.open_mode, PIPE_W))
 		{
-			if (write(delta.fd, (const void *)oper.delta_buf, oper.delta_wri_buf_size) < 0)
+			if (write_stream_all(delta.fd, (const void *)oper.delta_buf, oper.delta_wri_buf_size) < 0)
 			{
 				fprintf(stderr, "%s: error while writing to stdout: %s\n", process_name, strerror(errno));
 				cleanup(EXIT_FAILURE);
@@ -491,7 +530,7 @@ void applydelta_wri_flush_buf(size_t ahead)
 			{
 				off_t abs_buf_off = dst.abs_off - wri_buf_off;
 
-				if (pwrite(dst.fd, (const void *)oper.delta_buf, oper.delta_wri_buf_size, abs_buf_off) < 0)
+				if (write_at_all(dst.fd, (const void *)oper.delta_buf, oper.delta_wri_buf_size, abs_buf_off) < 0)
 				{
 					fprintf(stderr, "%s: error while writing to '%s' : %s\n", process_name, dst.path, strerror(errno));
 					cleanup(EXIT_FAILURE);
@@ -511,6 +550,7 @@ void oper_delta_buf_free()
 
 void cleanup(int result)
 {
+    era_free();
 	freedev(&src);
 	freedev(&dst);
 	freedev(&digest);

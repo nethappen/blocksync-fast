@@ -17,6 +17,7 @@
 
 
 bin_PROGRAMS = blocksync-fast
-blocksync_fast_SOURCES = blocksync-fast.c utils.c globals.c common.c init.c benchmark.c digest_info.c
-AM_CFLAGS = $(LIBGCRYPT_CFLAGS) $(XXHASH_CFLAGS) $(CPU_CFLAGS)
+blocksync_fast_SOURCES = blocksync-fast.c utils.c globals.c common.c init.c benchmark.c digest_info.c queued.c queued.h era.c era.h
+AM_CFLAGS = $(LIBGCRYPT_CFLAGS) $(XXHASH_CFLAGS) $(CPU_CFLAGS) -pthread
 LDADD = $(LIBGCRYPT_LIBS) $(XXHASH_LIBS)
+AM_LDFLAGS = -pthread

@@ -21,7 +21,8 @@
 
 #define PROGRAM_NAME "blocksync-fast"
 #define AUTHORS \
-	"Marcin Koczwara <mk@nethorizon.pl>"
+	"Marcin Koczwara <mk@nethorizon.pl>, " \
+	"Sven-Ola Tuecke <sven-ola@gmx.de>"
 
 #define BSF_VERSION "1.07"
 #define COPYRIGHT "Copyright (C) 2024 " AUTHORS
@@ -83,6 +84,9 @@ enum xxhash_algos
 #define _FILE_OFFSET_BITS 64
 #define NEED_LIBGCRYPT_VERSION ("1.9.0")
 
+#ifdef PAGE_SIZE
+#undef PAGE_SIZE
+#endif
 extern int PAGE_SIZE;
 
 #define D_BLOCK_SIZE (4 * 1024)			// 4KiB
@@ -184,6 +188,8 @@ extern struct param
 	bool hash_use;
 	const char *hash_algo;
 	struct symbol_value_desc algo;
+	const char *era;
+	size_t era_sectors;
 } param;
 
 enum oper_modes
@@ -237,5 +243,7 @@ void makedelta_wri_flush_buf();
 void applydelta_wri_flush_buf(size_t);
 void oper_delta_buf_free();
 void cleanup(int result);
+ssize_t write_at_all(int fd, const void *buf, size_t size, off_t offset);
+ssize_t write_stream_all(int fd, const void *buf, size_t size);
 
 #endif

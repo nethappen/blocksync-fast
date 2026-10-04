@@ -1,7 +1,7 @@
 # Blocksync-fast
 ![blocksync-fast](https://raw.githubusercontent.com/nethappen/blocksync-fast/main/assets/images/blocksync-fast.png)
 
-[![Build Status](/actions/workflows/build-and-release.yml/badge.svg?event=push&branch=master)](/actions)
+[![Build Status](https://github.com/nethappen/blocksync-fast/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/nethappen/blocksync-fast/actions)
 
 Blocksync-fast is a program written in C that clones and synchronizes any block devices (entire disks, partitions) or files (disk images) using fast and efficient methods. It uses buffered reads and writes to combine adjacent blocks together reducing the number of I/O operations. At synchronization process program overwrites only changed blocks which reduces data transfer and maintains blocks deduplication in Copy-on-write file systems.
 
@@ -11,28 +11,44 @@ Blocksync-fast uses the Libgcrypt library and supports many hashing algorithms,
 
 ## Requirements
 
-- Linux with standard libraries and build tools
+- Linux with a C compiler, Make, Autoconf >= 2.71, Automake, pkg-config,
+  and Linux native AIO development headers (`linux/aio_abi.h`)
 - Required library: [Libgcrypt](https://github.com/gpg/libgcrypt) >= 1.9.0
 - Optional library: [xxHash](https://github.com/Cyan4973/xxHash) >= 0.8.0
 
 ## Installation
 
+Install the development headers for Libgcrypt and, if desired, xxHash.
+Generated Autotools files are not tracked in Git, so regenerate them before
+configuring a fresh checkout:
+
 ```console
+ $ autoreconf --install
  $ ./configure
  $ make
  $ make install
 ```
 
-If you encounter problems with the make command like "missing: line 85: aclocal-1.17: command not found" do:
-```console
-$ autoreconf --install
-```
+## Build artifacts and releases
+
+The GitHub Actions workflow builds a Linux binary and Debian package on pushes.
+Workflow artifacts are retained for five days; artifact-upload failures are
+nonfatal, so a successful build does not guarantee an artifact is available.
+Successful release uploads on pushes of tags beginning with `v` attach the binary
+and package to a GitHub release. Release assets are separate from the temporary
+workflow artifacts.
+
+The release name and tag use `git describe --tags --long --dirty`, rather than
+the pushed tag verbatim. For example, pushing `v1.0.8` can produce a release tag
+such as `v1.0.8-0-gabcdef0`. Creating releases requires the workflow's GitHub token
+to have permission to write repository contents.
 
 ## Usage
 
 ```console
  blocksync-fast [options]
  blocksync-fast -s <src_device> -d <dst_device> [-f <digest_file>] [options]
+ blocksync-fast -s <src_device> [-f <digest_file>] --make-digest [options]
  blocksync-fast -s <src_device> [-f <digest_file>] --make-delta -D <delta_file> [options]
  blocksync-fast -d <dst_device> --apply-delta -D <delta_file> [options]
 ```
@@ -57,6 +73,100 @@ $ autoreconf --install
  $ blocksync-fast --make-delta -s /dev/vg1/vol1-snap -f /var/cache/backups/vol1.digest | ssh 192.168.1.115 'blocksync-fast --apply-delta -d /mnt/backups/vol1'
 ```
 
+## Queued source reads
+
+```console
+src/blocksync-fast -s ~/vms/400G-SQL.img -d /tmp/vms/400G-SQL.img -f /tmp/vms/400G-SQL.img.digest -b 4K --read-jobs=8 --read-depth=16 --read-size=256K --direct-read
+```
+
+A running VM image can be synchronized repeatedly: each digest entry represents
+bytes read and copied for that block, and changes after its read are picked up
+on a later pass. A live pass can combine blocks from different moments; it is not
+a point-in-time or guaranteed recoverable VM backup. Use a stopped VM or stable
+snapshot for a consistent copy and reproducible correctness/performance tests.
+Snapshots still benefit from faster transfers and shorter retention times.
+The options enable bounded Linux native AIO
+reads, using the same kernel interface as libaio. Each reader has its own Linux
+task ID, queue, hash context, aligned buffers and contiguous range. Eight readers
+with sixteen 256 KiB slots hold at most 32 MiB of source data in their queues,
+plus bounded comparison, digest and existing device buffers. Completed reads
+are hashed and compared in 4 KiB blocks; adjacent changed blocks within a read
+are written together. The digest indexing, hash algorithm and hash encoding are
+unchanged. Matching truncated hashes retain the existing collision risk.
+
+Without these options the existing synchronous reader remains the default.
+Specifying any read option enables the queued path; omitted values are one reader,
+depth sixteen and 256 KiB reads. `--buffer-size` retains its existing per-device
+buffer meaning. Limits are 64 readers, depth 256, read sizes from 4 KiB to 64 MiB
+in 4 KiB multiples, and 256 MiB total queued source buffers. Queued reads initially
+support block-sync with seekable files/devices and 4 KiB blocks. They reject mmap,
+stdin/stdout data streams, delta modes and detailed block progress. Basic progress
+prints a final summary when queued readers finish.
+
+`--direct-read` opens only the source with `O_DIRECT`. Alignment comes from
+`STATX_DIOALIGN`, the block device sector size when applicable, or a conservative
+4 KiB alignment on older regular-file systems. The final unaligned read uses the
+buffered source descriptor. Unsupported direct I/O produces an error and fails
+cleanly; omit `--direct-read` to use buffered reads. Direct writes are never enabled
+implicitly. Linux buffered AIO may perform reads synchronously during submission.
+
+Sparse handling is unchanged: ordinary reads return zeros for holes, which enter
+comparisons and digest generation and overwrite stale destination data. This
+change does not skip host extents or parse NTFS metadata.
+
+Regular-file targets grow automatically when the source is larger; `--force` is
+not needed for resizing. A warning reports the old and new sizes. By default,
+the target is extended without reserving disk space in advance. Specify
+`--preallocate` to reserve the added range before copying: native Linux `fallocate(FALLOC_FL_KEEP_SIZE)` reserves the added range,
+then the target is extended. With this flag, new files reserve their entire size. Allocation,
+quota, size-limit or unsupported-preallocation errors fail early; there is no
+zero-writing fallback. Reservation includes zero/hole ranges, and covers the
+added range rather than extra space needed for overwriting existing CoW extents
+or filesystem metadata. Preallocation failure leaves existing target bytes,
+size and digest contents unchanged; its incomplete marker enables safe retry.
+
+When the source is smaller, block-sync warns and asks before truncating the target
+(default: no). Pass `-y` or `--yes` to accept shrinking in advance. `--force` does
+not bypass this confirmation. Noninteractive runs must pass `-y` to allow
+shrinking; stdin sources also require `-y` when shrinking would consume input
+intended as source data. Declining leaves target, digest and marker unchanged;
+dry runs report the proposed change without prompting or reserving space. Old
+digests covering a different source size are rebuilt by destination comparison.
+Smaller block devices are rejected even with `--force`; larger devices retain the
+existing `--force` behavior of syncing only the source-sized prefix.
+
+The destination inode is locked for the entire sync, even when callers use
+different digest paths. Unexpected destination EOF is an error; zeros beyond
+EOF are synthesized only for a dry run's proposed extension. Before success,
+block-sync verifies the final regular-file size, so outside truncation cannot be
+mistaken for matching zero-filled data. Other applications must leave the target
+alone during the sync; inode locks are advisory.
+
+Block-sync persists `<digest>.incomplete` before target creation, resizing or
+updates. It removes the marker only after target and digest synchronization and
+directory synchronization succeed. After failure or interruption, the next block-sync automatically ignores the
+incomplete digest's header and entries, compares destination bytes, and rebuilds
+the digest using the current block-size/algorithm options. The marker stays in
+place until recovery succeeds. An exclusive lock on the marker prevents another
+sync using the same digest from starting while one is active. Dry-run recovery
+compares destination bytes while leaving target, digest and marker unchanged.
+Digest-only and delta modes refuse incomplete digests until block-sync recovers
+them. Keep the marker with the digest when moving files. Compatible old digests without a marker remain
+supported. A digest assumes its destination has not been changed externally;
+discard it when that assumption is false. Resizing/recreating a destination forces
+comparison instead of trusting its old digest. Source/destination inode and block
+device aliases are rejected before resizing.
+
+`--dont-write` does not create, truncate or update the target or digest, including
+when either is missing. For block-sync, `--dont-write-target` also suppresses digest
+updates so it cannot claim that uncopied data reached the target. A run with
+`--dont-write-digest` retains the incomplete marker; the next block-sync
+compares destination bytes and rebuilds it. Dry runs with mmap use buffered comparisons.
+
+fio can be used to find the optimal settings and throughput can get close to theoretical maximum.
+Digest access, comparison, target writes, filesystem behavior and synchronization
+all contribute to elapsed sync time. See [fixture validation and measurements](tests/VALIDATION.md).
+
 ## Options
 
 |                                  Argument | Description                                                                                                 |
@@ -75,6 +185,12 @@ $ autoreconf --install
 |                         --benchmark-algos | Benchmark all supported hash algorithms                                                                     |
 |                             --digest-info | Checks digest file, prints info and exit                                                                    |
 |                              --delta-info | Checks delta file, prints info and exit                                                                     |
+|                           -e, --era=PATH | DM-era XML change list for make-digest/make-delta; requires a compatible baseline digest                    |
+|                        -E, --era-sectors=N | Era tracking block size in 512-byte sectors (default:4096)                                                   |
+|                           --read-jobs=N | Queued source reader threads (opt-in)                                                                       |
+|                          --read-depth=N | Maximum outstanding reads per reader (default:16)                                                          |
+|                     --read-size=N[KMG] | Bytes per queued source read (default:256K); independent of 4K hash blocks                                  |
+|                         --direct-read | Direct source reads; fail cleanly if unsupported                                                           |
 |                      --buffer-size=N[KMG] | Size of the buffer in N bytes for processing data per device (default:2M)                                   |
 |               --progress, --show-progress | Show current progress while syncing                                                                         |
 | --progress-detail, --show-progress-detail | Show more detailed progress which generates a lot of writes on the console                                  |
@@ -82,9 +198,11 @@ $ autoreconf --install
 |                              --no-compare | Copy all data from src to dst without comparing differences                                                 |
 |                             --sync-writes | Immediately flushes and writes data to the disk specified at --buffer-size                                  |
 |                              --dont-write | Perform dry run with no updates to target and digest file                                                   |
-|                       --dont-write-target | Perform run with no updates only to target device                                                           |
+|                       --dont-write-target | Suppress target updates; block-sync also suppresses digest updates                                         |
 |                       --dont-write-digest | Perform run with no updates only to digest file                                                             |
-|                                   --force | Allows to overwrite files and override parameters which was generated before                                |
+|                           --preallocate | Reserve added target space before copying (opt-in)                                                         |
+|                               -y, --yes | Accept target shrinking without prompting                                                                  |
+|                                   --force | Override incompatible digest parameters or sync a larger device's source-sized prefix; does not approve shrinking or enlarge smaller devices |
 |                                  --silent | Doesn't print any messages                                                                                  |
 |                                -h, --help | Show this help message                                                                                      |
 |                             -V, --version | Show version                                                                                                |
@@ -254,9 +372,83 @@ $ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-06-00.del
 $ blocksync-fast -d vol-2024-05-06-00.img --apply-delta -D vol-2024-05-07-00.delta
 ```
 
+## DM-era support
+
+Linux [device-mapper era](https://docs.kernel.org/admin-guide/device-mapper/era.html)
+tracks writes to a mapped device. `era_invalidate` from
+[thin-provisioning-tools](https://github.com/jthornber/thin-provisioning-tools)
+exports the changed block indices as XML. Sven-Ola Tuecke's `--era` support lets
+`--make-digest` and `--make-delta` skip source ranges absent from that list.
+Block-sync, apply-delta and queued reads do not accept `--era`.
+
+Use `-e PATH` or `--era=PATH` for the XML file, or `--era=-` for XML on stdin.
+`-E N` or `--era-sectors=N` specifies the mapping's tracking block size in
+512-byte sectors (default: 4096 sectors, or 2 MiB). This must match the actual
+mapping; the XML does not contain its block size. The hash block size remains
+independent. Selected era ranges expand to all intersecting hash blocks.
+
+A complete, compatible, named baseline digest is required, including for empty
+change lists. Generate a full baseline first; missing, truncated, resized or
+incompatible baselines are rejected before rewriting the digest, even with
+`--force`. The XML must describe every change since that baseline for the same
+source device. Writes bypassing the era mapping and discard/TRIM changes are
+not reliably covered: omit `--era` and perform a full scan after such changes.
+A stopped workload or stable snapshot is still needed for a consistent backup.
+
+The accepted XML schema is `<blocks>` containing self-closing
+`<block block="N"/>` and `<range begin="N" end="N"/>` elements; range ends are
+exclusive. Whitespace, comments, an optional XML declaration, either quote style,
+and either attribute order are accepted. Unsorted/overlapping ranges are merged.
+Malformed XML, missing closing tags, negative/overflowing indices, unknown
+attributes and ranges outside source capacity are rejected before output changes.
+Input is limited to 16 MiB; entities and DTDs are unsupported.
+
+For an existing era mapping named `test-era` using metadata device `test-meta`,
+a full baseline backup can be created while the workload is stopped:
+
+```sh
+# Record the current era from dmsetup status alongside this baseline.
+dmsetup message test-era 0 checkpoint
+dmsetup status test-era
+blocksync-fast -s /dev/mapper/test-era -d backup.img -f baseline.digest
+```
+
+Before a later incremental backup, stop the workload again. Set `BASELINE_ERA`
+to the recorded era number, then export the held metadata snapshot and generate
+the delta (this example assumes the mapping uses 4096-sector tracking blocks):
+
+```sh
+dmsetup message test-era 0 take_metadata_snap
+era_invalidate --metadata-snapshot --written-since "$BASELINE_ERA" \
+  /dev/mapper/test-meta > changes.xml
+dmsetup message test-era 0 drop_metadata_snap
+cp baseline.digest baseline.digest.previous
+blocksync-fast --make-delta -s /dev/mapper/test-era -f baseline.digest \
+  --era=changes.xml --era-sectors=4096 -D next.delta
+blocksync-fast --apply-delta -d backup.img -D next.delta
+```
+
+Delta generation updates the digest before delta application. Keep the previous
+digest and era number until the delta has been safely stored and applied; if
+application fails, restore the previous digest before regenerating a delta.
+Do not advance the recorded era past writes not represented in the completed
+backup. Check the current era via `dmsetup status`; a checkpoint does not
+necessarily increment it.
+
+Digest updates persist `<digest>.incomplete` before mutation and remove it after
+output synchronization. Failed or interrupted era updates require recovery with
+a full baseline; selective retries refuse the incomplete marker. Preserve the
+previous baseline, or rebuild the backup and digest in full. To restore the
+previous baseline, first move the damaged digest and its marker out of the way
+together, then restore the saved digest and use its original era number.
+Keep any incomplete
+marker with its digest. `--dont-write` supports non-mutating era digest checks;
+era delta generation rejects write-suppression options. `--no-compare` is also
+rejected because skipping unlisted ranges requires trusting the baseline.
+
 ## Limitations and Notes
 
-Blocksync-fast is a tool for fast synchronization of block devices, designed to improve block-based backups. To use it as an automatic backup tool, it is recommended to include it in a BASH script, which will allow you to set up a solution adjusted to your individual needs, using various features and tools available in Linux. It should be taken into account the possibility of synchronization interruption due to network disconnection, device detachment, or other errors that may occur. In case of synchronization failure, the program will return an error code greater than 0, which should be handled in the BASH shell and appropriate actions, such as generating reports or retrying the synchronization, should be taken. It is also important to note that when synchronization with the Digest file is interrupted, there may be an inconsistencies between the state of the Digest file and the target storage device. Therefore, after each such interruption, it is recommended to rebuild the Digest file from the target backup or operate on a copy of the Digest file until full synchronization is achieved.
+Blocksync-fast is a tool for fast synchronization of block devices, designed to improve block-based backups. To use it as an automatic backup tool, it is recommended to include it in a BASH script, which will allow you to set up a solution adjusted to your individual needs, using various features and tools available in Linux. It should be taken into account the possibility of synchronization interruption due to network disconnection, device detachment, or other errors that may occur. In case of synchronization failure, the program will return an error code greater than 0, which should be handled in the BASH shell and appropriate actions, such as generating reports or retrying the synchronization, should be taken. Interrupted block-sync runs retain an incomplete marker and recover automatically by comparing destination bytes on the next run. Interrupted DM-era digest/delta updates require a complete baseline rebuild or restoration of the previous baseline; see the DM-era section above.
 
 An example backup script with GFS rotation scheme can be found in [scripts directory](https://www.github.com/nethappen/blocksync-fast/tree/main/scripts).
 
